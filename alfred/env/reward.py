@@ -74,6 +74,7 @@ class PickupObjectAction(BaseAction):
             inv_object_id = state.metadata['inventoryObjects'][0]['objectId']
             goal_object_id = subgoal['objectId']
 
+            # see https://github.com/askforalfred/alfred/issues/92
             # doesn't matter which slice you pick up
             def remove_slice_postfix(object_id):
                 return object_id.split("Sliced")[0]
