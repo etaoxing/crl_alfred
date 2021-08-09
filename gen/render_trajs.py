@@ -12,10 +12,10 @@ import shutil
 from termcolor import colored
 from sacred import Ingredient, Experiment
 
-from alfred.env.thor_env import ThorEnv
-from alfred.gen import constants
-from alfred.gen.utils import augment_util, video_util
-from alfred.utils import helper_util, model_util
+from ..env.thor_env import ThorEnv
+from ..gen import constants
+from ..gen.utils import augment_util, video_util
+from ..utils import helper_util, model_util
 
 
 args_ingredient = Ingredient('args')

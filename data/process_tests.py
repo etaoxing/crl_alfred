@@ -9,9 +9,9 @@ from tqdm import tqdm
 from pathlib import Path
 from sacred import Ingredient, Experiment
 
-from alfred.data.preprocessor import Preprocessor
-from alfred.gen import constants
-from alfred.utils import data_util
+from ..data.preprocessor import Preprocessor
+from ..gen import constants
+from ..utils import data_util
 
 args_ingredient = Ingredient('args')
 ex = Experiment('process_tests', ingredients=[args_ingredient])

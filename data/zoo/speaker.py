@@ -1,6 +1,6 @@
-from alfred.data.zoo.base import BaseDataset
-from alfred.data.zoo.alfred import AlfredDataset
-from alfred.utils import model_util
+from ...data.zoo.base import BaseDataset
+from ...data.zoo.alfred import AlfredDataset
+from ...utils import model_util
 
 
 class SpeakerDataset(BaseDataset):

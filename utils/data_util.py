@@ -17,9 +17,9 @@ from copy import deepcopy
 from vocab import Vocab
 from pathlib import Path
 
-from alfred.gen import constants
-from alfred.gen.utils import image_util
-from alfred.utils import helper_util, model_util
+from ..gen import constants
+from ..gen.utils import image_util
+from ..utils import helper_util, model_util
 
 
 def read_images(image_path_list):

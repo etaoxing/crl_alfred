@@ -5,7 +5,7 @@ import collections
 
 from datetime import datetime
 
-from alfred.utils import eval_util
+from ..utils import eval_util
 
 
 def compute_metrics(subgoal_success, subgoal_idx, reward, task, t_agent):

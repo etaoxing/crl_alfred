@@ -1,4 +1,4 @@
-from alfred.gen.utils import game_util
+from ..gen.utils import game_util
 
 class BaseAction(object):
     '''

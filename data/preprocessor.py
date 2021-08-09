@@ -3,8 +3,8 @@ import copy
 
 from vocab import Vocab
 
-from alfred.gen.utils import py_util
-from alfred.utils import model_util
+from ..gen.utils import py_util
+from ..utils import model_util
 
 
 class Preprocessor(object):

@@ -2,10 +2,10 @@ import os
 import json
 import numpy as np
 
-from alfred.env.reward import get_action
-from alfred.gen import constants
-from alfred.gen.graph import graph_obj
-from alfred.gen.utils import game_util
+from ..env.reward import get_action
+from ..gen import constants
+from ..gen.graph import graph_obj
+from ..gen.utils import game_util
 
 class BaseTask(object):
     '''

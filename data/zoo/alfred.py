@@ -4,9 +4,9 @@ import pickle
 import numpy as np
 from io import BytesIO
 
-from alfred.gen import constants
-from alfred.data.zoo.base import BaseDataset
-from alfred.utils import data_util, model_util
+from ...gen import constants
+from ...data.zoo.base import BaseDataset
+from ...utils import data_util, model_util
 
 
 class AlfredDataset(BaseDataset):

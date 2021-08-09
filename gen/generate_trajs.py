@@ -13,12 +13,12 @@ from collections import OrderedDict
 from datetime import datetime
 from sacred import Ingredient, Experiment
 
-from alfred.env.thor_env import ThorEnv
-from alfred.gen import constants
-from alfred.gen.agents.deterministic_planner_agent import DeterministicPlannerAgent
-from alfred.gen.game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
-from alfred.gen.utils import video_util, dataset_management_util
-from alfred.utils import helper_util
+from ..env.thor_env import ThorEnv
+from ..gen import constants
+from ..gen.agents.deterministic_planner_agent import DeterministicPlannerAgent
+from ..gen.game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
+from ..gen.utils import video_util, dataset_management_util
+from ..utils import helper_util
 
 args_ingredient = Ingredient('args')
 ex = Experiment('generate_trajs', ingredients=[args_ingredient])

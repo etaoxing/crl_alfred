@@ -8,9 +8,9 @@ import torch.nn as nn
 from torchvision import models
 from torchvision.transforms import functional as F
 
-from alfred.gen import constants
-from alfred.nn.transforms import Transforms
-from alfred.utils import data_util
+from ..gen import constants
+from ..nn.transforms import Transforms
+from ..utils import data_util
 
 
 class Resnet18(nn.Module):

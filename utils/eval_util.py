@@ -9,10 +9,10 @@ import numpy as np
 from PIL import Image
 from termcolor import colored
 
-from alfred.gen import constants
-from alfred.env.thor_env import ThorEnv
-from alfred.nn.enc_visual import FeatureExtractor
-from alfred.utils import data_util, model_util
+from ..gen import constants
+from ..env.thor_env import ThorEnv
+from ..nn.enc_visual import FeatureExtractor
+from ..utils import data_util, model_util
 
 
 def setup_scene(env, traj_data, reward_type='dense', test_split=False):

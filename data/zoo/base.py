@@ -9,8 +9,8 @@ from torch.utils.data import Dataset as TorchDataset
 from copy import deepcopy
 from tqdm import tqdm
 
-from alfred.gen import constants
-from alfred.utils import data_util
+from ...gen import constants
+from ...utils import data_util
 
 
 class BaseDataset(TorchDataset):

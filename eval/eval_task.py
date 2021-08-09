@@ -5,7 +5,7 @@ import numpy as np
 
 from datetime import datetime
 
-from alfred.utils import eval_util
+from ..utils import eval_util
 
 
 def compute_metrics(success, reward, task, t, pcs):

@@ -9,7 +9,7 @@ from PIL import Image
 from io import BytesIO
 from termcolor import colored
 
-import alfred.gen.constants as constants
+from .. import constants
 
 
 TRAJ_DATA_JSON_FILENAME = "traj_data.json"

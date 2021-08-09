@@ -10,8 +10,8 @@ from pathlib import Path
 from PIL import Image
 from torch.nn import functional as F
 
-from alfred.utils import metric_util
-from alfred.gen import constants
+from ..utils import metric_util
+from ..gen import constants
 
 
 def adjust_lr(optimizer, args, epoch, schedulers):

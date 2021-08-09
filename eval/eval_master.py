@@ -9,9 +9,9 @@ import torch.multiprocessing as mp
 from termcolor import colored
 from etaprogress.eta import ETA
 
-from alfred.data import AlfredDataset
-from alfred.gen import constants
-from alfred.utils import eval_util, model_util
+from ..data import AlfredDataset
+from ..gen import constants
+from ..utils import eval_util, model_util
 
 
 class EvalMaster(object):

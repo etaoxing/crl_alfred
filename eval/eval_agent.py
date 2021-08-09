@@ -2,12 +2,12 @@ import os
 
 from sacred import Experiment
 
-from alfred.config import exp_ingredient, eval_ingredient
-from alfred.eval.eval_master import EvalMaster
-from alfred.eval.eval_task import evaluate_task, process_eval_task
-from alfred.eval.eval_subgoals import evaluate_subgoals, process_eval_subgoals
-from alfred.gen import constants
-from alfred.utils import eval_util, helper_util
+from ..config import exp_ingredient, eval_ingredient
+from ..eval.eval_master import EvalMaster
+from ..eval.eval_task import evaluate_task, process_eval_task
+from ..eval.eval_subgoals import evaluate_subgoals, process_eval_subgoals
+from ..gen import constants
+from ..utils import eval_util, helper_util
 
 ex = Experiment('eval_agent', ingredients=[eval_ingredient, exp_ingredient])
 

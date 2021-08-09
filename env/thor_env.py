@@ -1,16 +1,15 @@
 import os
 import cv2
 import copy
-import torch
 import numpy as np
 
 from collections import Counter, OrderedDict
 from ai2thor.controller import Controller
 
-from alfred.gen import constants
-from alfred.gen.utils import image_util
-from alfred.env.tasks import get_task
-from alfred.gen.utils import game_util
+from ..gen import constants
+from ..gen.utils import image_util
+from ..env.tasks import get_task
+from ..gen.utils import game_util
 
 
 DEFAULT_RENDER_SETTINGS = {'renderImage': True,

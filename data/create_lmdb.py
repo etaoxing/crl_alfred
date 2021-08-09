@@ -11,10 +11,10 @@ from pathlib import Path
 from sacred import Ingredient, Experiment
 from vocab import Vocab
 
-from alfred.gen import constants
-from alfred.nn.enc_visual import FeatureExtractor
-from alfred.data.preprocessor import Preprocessor
-from alfred.utils import data_util, helper_util, model_util
+from ..gen import constants
+from ..nn.enc_visual import FeatureExtractor
+from ..data.preprocessor import Preprocessor
+from ..utils import data_util, helper_util, model_util
 
 
 args_ingredient = Ingredient('args')

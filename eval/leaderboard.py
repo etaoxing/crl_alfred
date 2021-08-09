@@ -4,10 +4,10 @@ import json
 from datetime import datetime
 from sacred import Experiment
 
-from alfred.config import exp_ingredient, eval_ingredient
-from alfred.eval.eval_master import EvalMaster
-from alfred.gen import constants
-from alfred.utils import eval_util, helper_util
+from ..config import exp_ingredient, eval_ingredient
+from ..eval.eval_master import EvalMaster
+from ..gen import constants
+from ..utils import eval_util, helper_util
 
 
 ex = Experiment('eval_agent', ingredients=[eval_ingredient, exp_ingredient])
