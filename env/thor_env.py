@@ -513,6 +513,8 @@ class ThorEnv(Controller):
             x, y = nz_rows[i], nz_cols[i]
             instance = tuple(instance_segs[x, y])
             instance_counter[instance] += 1
+        if debug:
+            print("action_box", "instance_counter", instance_counter)
 
         # iou scores for all instances
         iou_scores = {}
@@ -530,7 +532,16 @@ class ThorEnv(Controller):
         all_ids = [color_to_object_id[color_id] for color_id in iou_sorted_instance_ids
                    if color_id in color_to_object_id
                    and color_to_object_id[color_id] != inv_obj]
+
+        # print all ids
+        if debug:
+            print("action_box", "all_ids", all_ids)
+
+        # print instance_ids
         instance_ids = [inst_id for inst_id in all_ids if inst_id is not None]
+        if debug:
+            print("action_box", "instance_ids", instance_ids)
+
         # prune invalid instances like floors, walls, etc.
         instance_ids = ThorEnv.prune_by_any_interaction(
             instance_ids, last_event.metadata['objects'])
@@ -538,10 +549,21 @@ class ThorEnv(Controller):
         # cv2 imshows to show image, segmentation mask, interact mask
         if debug:
             print("action_box", "instance_ids", instance_ids)
+            instance_seg = copy.copy(instance_segs)
+            instance_seg[:, :, :] = mask[:, :, np.newaxis] == 1
+            instance_seg *= 255
+
+            cv2.imshow('seg', instance_segs)
+            cv2.imshow('mask', instance_seg)
+            cv2.imshow('full', last_event.frame[:,:,::-1])
+            cv2.waitKey(0)
 
         if len(instance_ids) == 0:
             return None
+
         object_id = instance_ids[0]
+        # This correction is done in E.T. commit #e9cfa4
+        #
         # the pretrained MaskRCNN checkpoint identifies both Sink/Bathtub and their
         # basin as the same class due to the training data preprocessing.
         # We correct it manually here.
@@ -558,6 +580,9 @@ class ThorEnv(Controller):
         '''
         target_instance_id = ''
         navig_action = (interact_mask is None)
+
+        if type(interact_mask) is str and interact_mask == "NULL":
+            raise Exception("NULL mask.")
 
         # object selection module
         if not navig_action:
@@ -580,6 +605,8 @@ class ThorEnv(Controller):
             return success, None, None, err, None
 
         if not event.metadata['lastActionSuccess']:
+            if interact_mask is not None and debug:
+                print(event.metadata['errorMessage'])
             success = False
             return (success, event, target_instance_id,
                     event.metadata['errorMessage'], api_action)
