@@ -1,34 +1,36 @@
+import os
 import cv2
 import copy
-import gen.constants as constants
+import torch
 import numpy as np
+
 from collections import Counter, OrderedDict
-from env.tasks import get_task
 from ai2thor.controller import Controller
-import gen.utils.image_util as image_util
-from gen.utils import game_util
-from gen.utils.game_util import get_objects_of_type, get_obj_of_type_closest_to_obj
+
+from alfred.gen import constants
+from alfred.gen.utils import image_util
+from alfred.env.tasks import get_task
+from alfred.gen.utils import game_util
 
 
 DEFAULT_RENDER_SETTINGS = {'renderImage': True,
                            'renderDepthImage': False,
                            'renderClassImage': False,
-                           'renderObjectImage': False,
-                           }
+                           'renderObjectImage': False}
 
 class ThorEnv(Controller):
     '''
     an extension of ai2thor.controller.Controller for ALFRED tasks
     '''
-    def __init__(self, x_display=constants.X_DISPLAY,
+    def __init__(self,
+                 x_display,
                  player_screen_height=constants.DETECTION_SCREEN_HEIGHT,
                  player_screen_width=constants.DETECTION_SCREEN_WIDTH,
                  quality='MediumCloseFitShadows',
                  build_path=constants.BUILD_PATH):
-
         super().__init__(quality=quality)
         self.local_executable_path = build_path
-        self.start(x_display=x_display,
+        self.start(x_display=str(x_display),
                    player_screen_height=player_screen_height,
                    player_screen_width=player_screen_width)
         self.task = None
@@ -74,9 +76,9 @@ class ThorEnv(Controller):
         # reset task if specified
         if self.task is not None:
             self.task.reset()
-
         # clear object state changes
         self.reset_states()
+        self.last_interaction = (None, None)
 
         return event
 
@@ -115,12 +117,14 @@ class ThorEnv(Controller):
                                forceAction=False))
         super().step((dict(action='SetObjectPoses', objectPoses=object_poses)))
 
-    def set_task(self, traj, args, reward_type='sparse', max_episode_length=2000):
+    def set_task(self, traj, reward_type='sparse', max_episode_length=2000):
         '''
         set the current task type (one of 7 tasks)
         '''
         task_type = traj['task_type']
-        self.task = get_task(task_type, traj, self, args, reward_type=reward_type, max_episode_length=max_episode_length)
+        self.task = get_task(
+            task_type, traj, self, reward_type=reward_type,
+            max_episode_length=max_episode_length)
 
     def step(self, action, smooth_nav=False):
         '''
@@ -163,17 +167,19 @@ class ThorEnv(Controller):
         if event.metadata['lastActionSuccess']:
             # clean
             if action['action'] == 'ToggleObjectOn' and "Faucet" in action['objectId']:
-                sink_basin = get_obj_of_type_closest_to_obj('SinkBasin', action['objectId'], event.metadata)
+                sink_basin = game_util.get_obj_of_type_closest_to_obj(
+                    'SinkBasin', action['objectId'], event.metadata)
                 cleaned_object_ids = sink_basin['receptacleObjectIds']
                 self.cleaned_objects = self.cleaned_objects | set(cleaned_object_ids) if cleaned_object_ids is not None else set()
             # heat
             if action['action'] == 'ToggleObjectOn' and "Microwave" in action['objectId']:
-                microwave = get_objects_of_type('Microwave', event.metadata)[0]
+                microwave = game_util.get_objects_of_type(
+                    'Microwave', event.metadata)[0]
                 heated_object_ids = microwave['receptacleObjectIds']
                 self.heated_objects = self.heated_objects | set(heated_object_ids) if heated_object_ids is not None else set()
             # cool
             if action['action'] == 'CloseObject' and "Fridge" in action['objectId']:
-                fridge = get_objects_of_type('Fridge', event.metadata)[0]
+                fridge = game_util.get_objects_of_type('Fridge', event.metadata)[0]
                 cooled_object_ids = fridge['receptacleObjectIds']
                 self.cooled_objects = self.cooled_objects | set(cooled_object_ids) if cooled_object_ids is not None else set()
 
@@ -189,7 +195,7 @@ class ThorEnv(Controller):
         if self.task is None:
             raise Exception("WARNING: no task setup for goal_satisfied")
         else:
-            return self.task.goal_satisfied(self.last_event)
+            return bool(self.task.goal_satisfied(self.last_event))
 
     def get_goal_conditions_met(self):
         if self.task is None:
@@ -466,19 +472,21 @@ class ThorEnv(Controller):
         if event.metadata['lastActionSuccess'] and 'Faucet' in object_id:
             # Need to delay one frame to let `isDirty` update on stream-affected.
             event = self.step({'action': 'Pass'})
-            sink_basin_obj = game_util.get_obj_of_type_closest_to_obj("SinkBasin", object_id, event.metadata)
+            sink_basin_obj = game_util.get_obj_of_type_closest_to_obj(
+                'SinkBasin', object_id, event.metadata)
             for in_sink_obj_id in sink_basin_obj['receptacleObjectIds']:
                 if (game_util.get_object(in_sink_obj_id, event.metadata)['dirtyable']
                         and game_util.get_object(in_sink_obj_id, event.metadata)['isDirty']):
                     event = self.step({'action': 'CleanObject', 'objectId': in_sink_obj_id})
         return event
 
-    def prune_by_any_interaction(self, instances_ids):
+    @staticmethod
+    def prune_by_any_interaction(instances_ids, all_objects):
         '''
         ignores any object that is not interactable in anyway
         '''
         pruned_instance_ids = []
-        for obj in self.last_event.metadata['objects']:
+        for obj in all_objects:
             obj_id = obj['objectId']
             if obj_id in instances_ids:
                 if obj['pickupable'] or obj['receptacle'] or obj['openable'] or obj['toggleable'] or obj['sliceable']:
@@ -558,9 +566,10 @@ class ThorEnv(Controller):
             target_instance_id = ""
 
         if debug:
-            print("taking action: " + str(action) + " on target_instance_id " + str(target_instance_id))
+            print("taking action {} on id {}".format(action, target_instance_id))
         try:
-            event, api_action = self.to_thor_api_exec(action, target_instance_id, smooth_nav)
+            event, api_action = self.to_thor_api_exec(
+                action, target_instance_id, smooth_nav)
         except Exception as err:
             success = False
             return success, None, None, err, None
@@ -577,19 +586,8 @@ class ThorEnv(Controller):
                 cv2.waitKey(0)
                 print(event.metadata['errorMessage'])
             success = False
-            return success, event, target_instance_id, event.metadata['errorMessage'], api_action
+            return (success, event, target_instance_id,
+                    event.metadata['errorMessage'], api_action)
 
         success = True
         return success, event, target_instance_id, '', api_action
-
-    @staticmethod
-    def bbox_to_mask(bbox):
-        return image_util.bbox_to_mask(bbox)
-
-    @staticmethod
-    def point_to_mask(point):
-        return image_util.point_to_mask(point)
-
-    @staticmethod
-    def decompress_mask(compressed_mask):
-        return image_util.decompress_mask(compressed_mask)

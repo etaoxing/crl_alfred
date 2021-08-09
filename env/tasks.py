@@ -1,20 +1,21 @@
+import os
 import json
 import numpy as np
-from graph import graph_obj
-from gen.utils.game_util import get_objects_with_name_and_prop
-from env.reward import get_action
 
+from alfred.env.reward import get_action
+from alfred.gen import constants
+from alfred.gen.graph import graph_obj
+from alfred.gen.utils import game_util
 
 class BaseTask(object):
     '''
     base class for tasks
     '''
 
-    def __init__(self, traj, env, args, reward_type='sparse', max_episode_length=2000):
+    def __init__(self, traj, env, reward_type='sparse', max_episode_length=2000):
         # settings
         self.traj = traj
         self.env = env
-        self.args = args
         self.task_type = self.traj['task_type']
         self.max_episode_length = max_episode_length
         self.reward_type = reward_type
@@ -31,17 +32,17 @@ class BaseTask(object):
         self.load_nav_graph()
 
         # reward config
-        self.reward_config = None
-        self.load_reward_config(args.reward_config)
+        self.load_reward_config()
         self.strict = 'strict' in reward_type
 
         # prev state
         self.prev_state = self.env.last_event
 
-    def load_reward_config(self, config_file):
+    def load_reward_config(self):
         '''
         load json file with reward values
         '''
+        config_file = os.path.join(constants.ET_ROOT, constants.REWARD_CONFIG)
         with open(config_file, 'r') as rc:
             reward_config = json.load(rc)
         self.reward_config = reward_config
@@ -165,8 +166,10 @@ class PickAndPlaceSimpleTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
 
         # check if object needs to be sliced
         if 'Sliced' in targets['object']:
@@ -203,8 +206,10 @@ class PickTwoObjAndPlaceTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
 
         # check if object needs to be sliced
         if 'Sliced' in targets['object']:
@@ -240,8 +245,10 @@ class LookAtObjInLightTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        toggleables = get_objects_with_name_and_prop(targets['toggle'], 'toggleable', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        toggleables = game_util.get_objects_with_name_and_prop(
+            targets['toggle'], 'toggleable', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
         inventory_objects = state.metadata['inventoryObjects']
 
         # check if object needs to be sliced
@@ -281,8 +288,10 @@ class PickHeatThenPlaceInRecepTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
 
         # check if object needs to be sliced
         if 'Sliced' in targets['object']:
@@ -328,8 +337,10 @@ class PickCoolThenPlaceInRecepTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
 
         if 'Sliced' in targets['object']:
             ts += 1
@@ -374,8 +385,10 @@ class PickCleanThenPlaceInRecepTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
 
         if 'Sliced' in targets['object']:
             ts += 1
@@ -420,9 +433,12 @@ class PickAndPlaceWithMovableRecepTask(BaseTask):
         s = 0
 
         targets = self.get_targets()
-        receptacles = get_objects_with_name_and_prop(targets['parent'], 'receptacle', state.metadata)
-        pickupables = get_objects_with_name_and_prop(targets['object'], 'pickupable', state.metadata)
-        movables = get_objects_with_name_and_prop(targets['mrecep'], 'pickupable', state.metadata)
+        receptacles = game_util.get_objects_with_name_and_prop(
+            targets['parent'], 'receptacle', state.metadata)
+        pickupables = game_util.get_objects_with_name_and_prop(
+            targets['object'], 'pickupable', state.metadata)
+        movables = game_util.get_objects_with_name_and_prop(
+            targets['mrecep'], 'pickupable', state.metadata)
 
         # check if object needs to be sliced
         if 'Sliced' in targets['object']:
@@ -454,11 +470,11 @@ class PickAndPlaceWithMovableRecepTask(BaseTask):
         super().reset()
 
 
-def get_task(task_type, traj, env, args, reward_type='sparse', max_episode_length=2000):
+def get_task(task_type, traj, env, reward_type='sparse', max_episode_length=2000):
     task_class_str = task_type.replace('_', ' ').title().replace(' ', '') + "Task"
 
     if task_class_str in globals():
         task = globals()[task_class_str]
-        return task(traj, env, args, reward_type=reward_type, max_episode_length=max_episode_length)
+        return task(traj, env, reward_type=reward_type, max_episode_length=max_episode_length)
     else:
         raise Exception("Invalid task_type %s" % task_class_str)
