@@ -42,7 +42,7 @@ class BaseTask(object):
         '''
         load json file with reward values
         '''
-        config_file = os.path.join(constants.ET_ROOT, constants.REWARD_CONFIG)
+        config_file = os.path.join(os.path.dirname(__file__), '../models/', constants.REWARD_CONFIG)
         with open(config_file, 'r') as rc:
             reward_config = json.load(rc)
         self.reward_config = reward_config
