@@ -1,14 +1,16 @@
 import os
 from glob import glob
 import json
+import collections
+
+DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../alfred/data/json_2.1.0'))
 
 
 def get_set_of_discrete_actions():
-    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../alfred/data/json_2.1.0'))
 
     discrete_action_set = set()
 
-    files = glob(os.path.join(data_dir, 'train') + '/*/*/traj_data.json')
+    files = glob(os.path.join(DATA_DIR, 'train') + '/*/*/traj_data.json')
     for json_file in files:
         with open(json_file, 'r') as f:
             traj_data = json.load(f)
@@ -29,5 +31,34 @@ def get_set_of_discrete_actions():
     # ['CloseObject', 'LookDown_15', 'LookUp_15', 'MoveAhead_25', 'OpenObject', 'PickupObject', 'PutObject', 'RotateLeft_90', 'RotateRight_90', 'SliceObject', 'ToggleObjectOff', 'ToggleObjectOn']
 
 
+def create_task_sequence_of_set(which_set):
+    tasks = set()
+    demos = collections.defaultdict(list)
+
+    files = glob(os.path.join(DATA_DIR, 'train') + '/*/*/traj_data.json')
+    for f in files:
+        demo_name = '/'.join(f.split('/')[-3:-1])
+        task = demo_name.split('-')[0]
+        tasks.add(task)
+        demos[task].append(demo_name)
+
+    for k in sorted(tasks):
+        v = sorted(demos[k])
+        demos[k] = v
+
+    return demos
+
+
+def create_task_sequences():
+    d = {}
+    for s in ['train', 'valid_seen', 'valid_unseen', 'test_seen', 'test_unseen']:
+        demos = create_task_sequence_of_set(s)
+        d[s] = demos
+
+    with open('task_sequences.json', 'w') as f:
+        json.dump(d, f, indent=2)
+
+
 if __name__ == '__main__':
-    get_set_of_discrete_actions()
+    # get_set_of_discrete_actions()
+    create_task_sequences()
