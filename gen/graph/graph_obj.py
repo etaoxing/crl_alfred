@@ -5,8 +5,8 @@ import time
 import networkx as nx
 import numpy as np
 
-import constants
-from gen.utils import game_util
+from .. import constants
+from ..utils import game_util
 
 MAX_WEIGHT_IN_GRAPH = 1e5
 PRED_WEIGHT_THRESH = 10
@@ -35,9 +35,7 @@ class Graph(object):
 
         self.scene_id = scene_id
         self.points = np.load(os.path.join(
-            os.path.dirname(__file__),
-            os.pardir,
-            'layouts',
+            constants.LAYOUTS_PATH,
             'FloorPlan%s-layout.npy' % self.scene_id))
         self.points /= constants.AGENT_STEP_SIZE
         self.points = np.round(self.points).astype(np.int32)

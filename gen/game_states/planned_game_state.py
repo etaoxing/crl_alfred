@@ -467,7 +467,8 @@ class PlannedGameState(GameStateBase, ABC):
                                             scene=scene, objs=objs)
         self.gt_graph.clear()
 
-        points_source = 'layouts/%s-openable.json' % self.scene_name
+        points_source = '{}/{}-openable.json'.format(
+            constants.LAYOUTS_PATH, self.scene_name)
         with open(points_source, 'r') as f:
             openable_object_to_point = json.load(f)
         self.openable_object_to_point = openable_object_to_point
