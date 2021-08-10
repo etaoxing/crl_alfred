@@ -2,7 +2,7 @@ import os
 import re
 import json
 import torch
-import lmdb
+# import lmdb
 import shutil
 import pickle
 import warnings
@@ -14,12 +14,12 @@ from io import BytesIO
 from torch.nn.utils.rnn import pad_sequence
 from torchvision import transforms
 from copy import deepcopy
-from vocab import Vocab
+# from vocab import Vocab
 from pathlib import Path
 
 from ..gen import constants
 from ..gen.utils import image_util
-from ..utils import helper_util, model_util
+# from ..utils import helper_util, model_util
 
 
 def read_images(image_path_list):
@@ -124,6 +124,8 @@ def process_traj(traj_orig, traj_path, r_idx, preprocessor):
 
 
 def gather_feats(files, output_path):
+    import lmdb
+
     print('Writing features to LMDB')
     if output_path.is_dir():
         shutil.rmtree(output_path)
@@ -136,6 +138,8 @@ def gather_feats(files, output_path):
 
 
 def gather_masks(files, output_path):
+    import lmdb
+    
     print('Writing masks to LMDB')
     if output_path.is_dir():
         shutil.rmtree(output_path)
@@ -165,6 +169,8 @@ def gather_jsons(files, output_path):
 
 
 def get_preprocessor(PreprocessorClass, subgoal_ann, lock, vocab_path=None):
+    import helper_util
+
     if vocab_path is None:
         init_words = ['<<pad>>', '<<seg>>', '<<goal>>', '<<mask>>']
     else:

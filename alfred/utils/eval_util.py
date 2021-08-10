@@ -3,15 +3,14 @@ import json
 import queue
 import torch
 import shutil
-import filelock
+# import filelock
 import numpy as np
 
 from PIL import Image
-from termcolor import colored
+# from termcolor import colored
 
 from ..gen import constants
 from ..env.thor_env import ThorEnv
-from ..nn.enc_visual import FeatureExtractor
 from ..utils import data_util, model_util
 
 
@@ -42,6 +41,9 @@ def load_agent(model_path, dataset_info, device):
     model = learned_model.model
     model.eval()
     model.args.device = device
+
+    from ..nn.enc_visual import FeatureExtractor
+
     extractor = FeatureExtractor(
         archi=dataset_info['visual_archi'],
         device=device,
@@ -53,6 +55,9 @@ def load_agent(model_path, dataset_info, device):
 def load_object_predictor(args):
     if args.object_predictor is None:
         return None
+    
+    from ..nn.enc_visual import FeatureExtractor
+
     return FeatureExtractor(
         archi='maskrcnn', device=args.device,
         checkpoint=args.object_predictor, load_heads=True)
