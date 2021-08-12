@@ -27,6 +27,7 @@ class ThorEnv(Controller):
                  player_screen_width=constants.DETECTION_SCREEN_WIDTH,
                  quality='MediumCloseFitShadows',
                  build_path=constants.BUILD_PATH):
+        self.task = None  # set this before since init() will call reset()
         super().__init__(
             quality=quality,
             x_display=x_display,
@@ -34,7 +35,6 @@ class ThorEnv(Controller):
             width=player_screen_width,
         )
         self.local_executable_path = build_path
-        self.task = None
 
         # internal states
         self.cleaned_objects = set()
@@ -130,30 +130,33 @@ class ThorEnv(Controller):
             task_type, traj, self, reward_type=reward_type,
             max_episode_length=max_episode_length)
 
-    def step(self, action, smooth_nav=False):
+    def step(self, action, smooth_nav=False, **kwargs):
         '''
         overrides ai2thor.controller.Controller.step() for smooth navigation and goal_condition updates
         '''
-        if smooth_nav:
-            if "MoveAhead" in action['action']:
-                self.smooth_move_ahead(action)
-            elif "Rotate" in action['action']:
-                self.smooth_rotate(action)
-            elif "Look" in action['action']:
-                self.smooth_look(action)
+        if isinstance(action, dict):
+            if smooth_nav:
+                if "MoveAhead" in action['action']:
+                    self.smooth_move_ahead(action)
+                elif "Rotate" in action['action']:
+                    self.smooth_rotate(action)
+                elif "Look" in action['action']:
+                    self.smooth_look(action)
+                else:
+                    super().step(action)
             else:
-                super().step(action)
-        else:
-            if "LookUp" in action['action']:
-                self.look_angle(-constants.AGENT_HORIZON_ADJ)
-            elif "LookDown" in action['action']:
-                self.look_angle(constants.AGENT_HORIZON_ADJ)
-            else:
-                super().step(action)
+                if "LookUp" in action['action']:
+                    self.look_angle(-constants.AGENT_HORIZON_ADJ)
+                elif "LookDown" in action['action']:
+                    self.look_angle(constants.AGENT_HORIZON_ADJ)
+                else:
+                    super().step(action, **kwargs)
 
-        event = self.update_states(action)
-        self.check_post_conditions(action)
-        return event
+            self.update_states(action)
+            self.check_post_conditions(action)
+        else:  # pass through actions like ai2thor/controller.py L585, action="GetScenesInBuild"
+            super().step(action, **kwargs)
+        return self.last_event
 
     def check_post_conditions(self, action):
         '''
