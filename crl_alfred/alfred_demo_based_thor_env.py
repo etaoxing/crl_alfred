@@ -155,7 +155,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
             'raw_images',
             self.traj_data['images'][i]['image_name'].replace('.png', '.jpg')
         )
-        self.goal_frame = Image.open(image_path)
+        self.goal_frame = np.array(Image.open(image_path))
 
         self.low_idx = self.traj_data['images'][i]['low_idx']
 
@@ -194,4 +194,6 @@ class AlfredDemoBasedThorEnv(gym.Env):
 if __name__ == '__main__':
     env = AlfredDemoBasedThorEnv('train', 'pick_clean_then_place_in_recep-LettuceSliced-None-Fridge-19/trial_T20190909_010053_518756')
     env.reset()
-    env.step(0)
+    o = env.step(0)
+    print(o)
+
