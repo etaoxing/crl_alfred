@@ -4,7 +4,7 @@ import copy
 import numpy as np
 
 from collections import Counter, OrderedDict
-from env.tasks import get_task
+from alfred.env.tasks import get_task
 import ai2thor
 from ai2thor.controller import Controller
 
@@ -136,7 +136,7 @@ class ThorEnv(Controller):
             task_type, traj, self, reward_type=reward_type,
             max_episode_length=max_episode_length)
 
-    def step(self, action, smooth_nav=False):
+    def step(self, action, smooth_nav=False, raise_for_failure=False):
         '''
         overrides ai2thor.controller.Controller.step() for smooth navigation and goal_condition updates
         '''
@@ -180,40 +180,21 @@ class ThorEnv(Controller):
         event = self.last_event
         if event.metadata['lastActionSuccess']:
             # clean
-<<<<<<< HEAD:alfred/env/thor_env.py
-            if action['action'] == 'ToggleObjectOn' and "Faucet" in action['objectId']:
-                sink_basin = game_util.get_obj_of_type_closest_to_obj(
-                    'SinkBasin', action['objectId'], event.metadata)
-                cleaned_object_ids = sink_basin['receptacleObjectIds']
-                self.cleaned_objects = self.cleaned_objects | set(cleaned_object_ids) if cleaned_object_ids is not None else set()
-            # heat
-            if action['action'] == 'ToggleObjectOn' and "Microwave" in action['objectId']:
-                microwave = game_util.get_objects_of_type(
-                    'Microwave', event.metadata)[0]
-                heated_object_ids = microwave['receptacleObjectIds']
-                self.heated_objects = self.heated_objects | set(heated_object_ids) if heated_object_ids is not None else set()
-            # cool
-            if action['action'] == 'CloseObject' and "Fridge" in action['objectId']:
-                fridge = game_util.get_objects_of_type('Fridge', event.metadata)[0]
-                cooled_object_ids = fridge['receptacleObjectIds']
-                self.cooled_objects = self.cooled_objects | set(cooled_object_ids) if cooled_object_ids is not None else set()
-=======
             if 'action' in action:
                 if action['action'] == 'ToggleObjectOn' and "Faucet" in action['objectId']:
-                    sink_basin = get_obj_of_type_closest_to_obj('SinkBasin', action['objectId'], event.metadata)
+                    sink_basin = game_util.get_obj_of_type_closest_to_obj('SinkBasin', action['objectId'], event.metadata)
                     cleaned_object_ids = sink_basin['receptacleObjectIds']
                     self.cleaned_objects = self.cleaned_objects | set(cleaned_object_ids) if cleaned_object_ids is not None else set()
                 # heat
                 if action['action'] == 'ToggleObjectOn' and "Microwave" in action['objectId']:
-                    microwave = get_objects_of_type('Microwave', event.metadata)[0]
+                    microwave = game_util.get_objects_of_type('Microwave', event.metadata)[0]
                     heated_object_ids = microwave['receptacleObjectIds']
                     self.heated_objects = self.heated_objects | set(heated_object_ids) if heated_object_ids is not None else set()
                 # cool
                 if action['action'] == 'CloseObject' and "Fridge" in action['objectId']:
-                    fridge = get_objects_of_type('Fridge', event.metadata)[0]
+                    fridge = game_util.get_objects_of_type('Fridge', event.metadata)[0]
                     cooled_object_ids = fridge['receptacleObjectIds']
                     self.cooled_objects = self.cooled_objects | set(cooled_object_ids) if cooled_object_ids is not None else set()
->>>>>>> 32a288fd072df3d6b9ce80a16c1efbbd6a7280f7:env/thor_env.py
 
         return event
 
