@@ -7,7 +7,7 @@ from collections import OrderedDict
 DEBUG = True
 EVAL = False
 ET_DATA = ''
-ET_ROOT = ''
+ET_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 ET_LOGS = ''
 # ET_DATA = os.environ['ET_DATA']
 # ET_ROOT = os.environ['ET_ROOT']

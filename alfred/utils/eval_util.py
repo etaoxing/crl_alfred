@@ -12,6 +12,7 @@ from PIL import Image
 from ..gen import constants
 from ..env.thor_env import ThorEnv
 from ..utils import data_util, model_util
+from ..utils.traj_validator import TrajValidator
 
 
 def setup_scene(env, traj_data, reward_type='dense', test_split=False):
@@ -27,7 +28,7 @@ def setup_scene(env, traj_data, reward_type='dense', test_split=False):
     env.reset(scene_name, silent=True)
     env.restore_scene(object_poses, object_toggles, dirty_and_empty)
     # initialize to start position
-    env.step(dict(traj_data['scene']['init_action']))
+    env.step(TrajValidator.validate_action(dict(traj_data['scene']['init_action'])))
     # setup task for reward
     if not test_split:
         env.set_task(traj_data, reward_type=reward_type)
