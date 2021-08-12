@@ -187,6 +187,7 @@ class GameStateBase(object):
                   'rotateOnTeleport': True,
                   'horizon': 30,
                   'rotation': self.start_point[2] * 90,
+                  'standing': True  # TODO: initialize differently?
                   }
         self.event = self.env.step(action)
 

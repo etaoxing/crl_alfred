@@ -625,7 +625,7 @@ def main(args, thread_num=0):
         # if this combination resulted in a certain number of failures with no successes, flag it as not possible.
         if tries_remaining == 0 and target_remaining == args.repeats_per_cond:
             new_fails = [(gtype, pickup_obj, movable_obj, receptacle_obj, str(sampled_scene))]
-            fail_traj = load_fails_from_disk(args.save_path, to_write=new_fails)
+            fail_traj = dataset_management_util.load_fails_from_disk(args.save_path, to_write=new_fails)
             print("%%%%%%%%%%")
             print("failures (%d)" % len(fail_traj))
             # print("\t" + "\n\t".join([str(ft) for ft in fail_traj]))
