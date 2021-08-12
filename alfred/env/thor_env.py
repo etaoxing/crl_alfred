@@ -258,6 +258,7 @@ class ThorEnv(Controller):
         horizon = np.round(event.metadata['agent']['cameraHorizon'], 4)
         position = event.metadata['agent']['position']
         rotation = event.metadata['agent']['rotation']
+        standing = event.metadata['agent']['isStanding']
         start_rotation = rotation['y']
         if action['action'] == 'RotateLeft':
             end_rotation = (start_rotation - 90)
@@ -274,6 +275,7 @@ class ThorEnv(Controller):
                     'z': position['z'],
                     'y': position['y'],
                     'horizon': horizon,
+                    'standing': standing,
                     'tempRenderChange': True,
                     'renderNormalsImage': False,
                     'renderImage': render_settings['renderImage'],
@@ -290,6 +292,7 @@ class ThorEnv(Controller):
                     'z': position['z'],
                     'y': position['y'],
                     'horizon': horizon,
+                    'standing': standing
                 }
                 event = super().step(teleport_action)
 
@@ -308,6 +311,7 @@ class ThorEnv(Controller):
         rotation = np.round(event.metadata['agent']['rotation']['y'], 4)
         end_horizon = start_horizon + constants.AGENT_HORIZON_ADJ * (1 - 2 * int(action['action'] == 'LookUp'))
         position = event.metadata['agent']['position']
+        standing = event.metadata['agent']['isStanding']
 
         events = []
         for xx in np.arange(.1, 1.0001, .1):
@@ -319,12 +323,13 @@ class ThorEnv(Controller):
                     'z': position['z'],
                     'y': position['y'],
                     'horizon': np.round(start_horizon * (1 - xx) + end_horizon * xx, 3),
+                    'standing': standing,
                     'tempRenderChange': True,
                     'renderNormalsImage': False,
                     'renderImage': render_settings['renderImage'],
                     'renderClassImage': render_settings['renderClassImage'],
                     'renderObjectImage': render_settings['renderObjectImage'],
-                    'renderDepthImage': render_settings['renderDepthImage'],
+                    'renderDepthImage': render_settings['renderDepthImage']
                 }
                 event = super().step(teleport_action)
             else:
@@ -335,6 +340,7 @@ class ThorEnv(Controller):
                     'z': position['z'],
                     'y': position['y'],
                     'horizon': np.round(start_horizon * (1 - xx) + end_horizon * xx, 3),
+                    'standing': standing
                 }
                 event = super().step(teleport_action)
 
@@ -353,6 +359,7 @@ class ThorEnv(Controller):
         rotation = np.round(event.metadata['agent']['rotation']['y'], 4)
         end_horizon = start_horizon + angle
         position = event.metadata['agent']['position']
+        standing = event.metadata['agent']['isStanding']
 
         teleport_action = {
             'action': 'TeleportFull',
@@ -361,6 +368,7 @@ class ThorEnv(Controller):
             'z': position['z'],
             'y': position['y'],
             'horizon': np.round(end_horizon, 3),
+            'standing': standing,
             'tempRenderChange': True,
             'renderNormalsImage': False,
             'renderImage': render_settings['renderImage'],
@@ -381,6 +389,7 @@ class ThorEnv(Controller):
         horizon = np.round(event.metadata['agent']['cameraHorizon'], 4)
         position = event.metadata['agent']['position']
         rotation = event.metadata['agent']['rotation']
+        standing = event.metadata['agent']['isStanding']
         start_rotation = rotation['y']
         end_rotation = start_rotation + angle
 
@@ -391,6 +400,7 @@ class ThorEnv(Controller):
             'z': position['z'],
             'y': position['y'],
             'horizon': horizon,
+            'standing': standing,
             'tempRenderChange': True,
             'renderNormalsImage': False,
             'renderImage': render_settings['renderImage'],

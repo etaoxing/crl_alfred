@@ -463,7 +463,7 @@ def main(args, thread_num=0):
     traj_data_sampler = glob.iglob(os.path.join(constants.ET_DATA, "**", "traj_data.json"), recursive=True)
 
     # main generation loop
-    # keeps trying out new task tuples as trajectories either fail or suceed
+    # keeps trying out new task tuples as trajectories either fail or succeed
     while True:
         try:
             if args.only_traj_data:

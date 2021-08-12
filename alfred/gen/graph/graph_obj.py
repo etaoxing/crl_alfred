@@ -393,6 +393,7 @@ if __name__ == '__main__':
         start_pose = (point1[0], point1[1], random.randint(0, 3), 0)
         end_pose = (point2[0], point2[1], random.randint(0, 3), 0)
         agent_height = env.last_event.metadata['agent']['position']['y']
+        standing = env.last_event.metadata['agent']['isStanding']
         action = {'action': 'TeleportFull',
                   'x': start_pose[0] * constants.AGENT_STEP_SIZE,
                   'y': agent_height,
@@ -400,6 +401,7 @@ if __name__ == '__main__':
                   'rotateOnTeleport': True,
                   'rotation': start_pose[2],
                   'horizon': start_pose[3],
+                  'standing': standing
                   }
         env.step(action)
         actions, path = graph.get_shortest_path(start_pose, end_pose)

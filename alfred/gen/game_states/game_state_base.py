@@ -175,6 +175,7 @@ class GameStateBase(object):
                                 self.gt_graph.yMax - self.gt_graph.yMin + 1])
 
         self.agent_height = self.env.last_event.metadata['agent']['position']['y']
+        self.agent_standing = self.env.last_event.metadata['agent']['isStanding']
         self.camera_height = self.agent_height + constants.CAMERA_HEIGHT_OFFSET
         start_point = self.local_random.randint(0, self.gt_graph.points.shape[0] - 1)
         start_point = self.gt_graph.points[start_point, :].copy()
@@ -187,7 +188,7 @@ class GameStateBase(object):
                   'rotateOnTeleport': True,
                   'horizon': 30,
                   'rotation': self.start_point[2] * 90,
-                  'standing': True  # TODO: initialize differently?
+                  'standing': self.agent_standing
                   }
         self.event = self.env.step(action)
 

@@ -132,7 +132,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# FF Planner
+# FF Planner/Alfred
+*.png
 *.o
 *.pddl
 alfred/gen/ff_planner/ff
