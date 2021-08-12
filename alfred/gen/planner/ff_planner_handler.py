@@ -6,9 +6,9 @@ import shlex
 import subprocess
 import time
 
-import constants
-from utils import game_util
-from utils import py_util
+from .. import constants
+from ..utils import game_util
+from ..utils import py_util
 
 DEBUG = False
 

@@ -15,12 +15,11 @@ from collections import OrderedDict
 from datetime import datetime
 import glob
 
-import constants
-from agents.deterministic_planner_agent import DeterministicPlannerAgent
-from env.thor_env import ThorEnv
-from game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
-from utils.video_util import VideoSaver
-from utils.dataset_management_util import load_successes_from_disk, load_fails_from_disk
+from alfred.gen import constants
+from alfred.gen.agents.deterministic_planner_agent import DeterministicPlannerAgent
+from alfred.env.thor_env import ThorEnv
+from alfred.gen.game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
+from alfred.gen.utils import video_util, dataset_management_util
 
 # params
 RAW_IMAGES_FOLDER = 'raw_images/'
@@ -28,7 +27,7 @@ DATA_JSON_FILENAME = 'traj_data.json'
 DEPTH_IMAGES_FOLDER = 'depth_images/'
 
 # video saver
-video_saver = VideoSaver()
+video_saver = video_util.VideoSaver()
 
 # structures to help with constraint enforcement.
 goal_to_required_variables = {"pick_and_place_simple": {"pickup", "receptacle", "scene"},
@@ -398,7 +397,7 @@ def main(args, thread_num=0):
     # objects-to-scene and scene-to-objects database
     for scene_type, ids in constants.SCENE_TYPE.items():
         for id in ids:
-            obj_json_file = os.path.join('layouts', 'FloorPlan%d-objects.json' % id)
+            obj_json_file = os.path.join(constants.LAYOUTS_PATH, 'FloorPlan%d-objects.json' % id)
             with open(obj_json_file, 'r') as of:
                 scene_objs = json.load(of)
 
@@ -421,14 +420,15 @@ def main(args, thread_num=0):
             scene_to_type[str(s)] = st
 
     # pre-populate counts in this structure using saved trajectories path.
-    succ_traj, full_traj = load_successes_from_disk(args.save_path, succ_traj, args.just_examine, args.repeats_per_cond)
+    succ_traj, full_traj = dataset_management_util.load_successes_from_disk(
+        args.save_path, succ_traj, args.just_examine, args.repeats_per_cond)
     if args.just_examine:
         print_successes(succ_traj)
         return
 
     print(succ_traj.groupby('goal').count())
     # pre-populate failed trajectories.
-    fail_traj = load_fails_from_disk(args.save_path)
+    fail_traj = dataset_management_util.load_fails_from_disk(args.save_path)
     print("Loaded %d known failed tuples" % len(fail_traj))
 
     # create env and agent
@@ -466,9 +466,11 @@ def main(args, thread_num=0):
     # keeps trying out new task tuples as trajectories either fail or suceed
     while True:
         try:
-            json_path = next(traj_data_sampler)
-            sampled_task = json_path.split('/')[-3].split('-')
-            # sampled_task = next(task_sampler)
+            if args.only_traj_data:
+                json_path = next(traj_data_sampler)
+                sampled_task = json_path.split('/')[-3].split('-')
+            else:
+                sampled_task = next(task_sampler)
         except StopIteration:
             sampled_task = None
         print(sampled_task)  # DEBUG
@@ -723,6 +725,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # settings
+    parser.add_argument('--only_traj_data', action='store_true', help="only use collected demos from traj_data.json, not generated data")
     parser.add_argument('--force_unsave', action='store_true', help="don't save any data (for debugging purposes)")
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--save_path', type=str, default="dataset/new_trajectories_valid_seen", help="where to save the generated data")
