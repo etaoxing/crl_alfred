@@ -12,6 +12,7 @@ from ..utils import game_util
 from ..utils.py_util import SetWithGet
 from ..utils.image_util import compress_mask
 
+MAX_DEPTH = 1
 
 class GameStateBase(object):
     static_action_space = [
@@ -111,7 +112,7 @@ class GameStateBase(object):
 
         if scene is not None:
             self.scene_num = scene['scene_num']
-            seed = scene['random_seed']
+            seed = scene['random_seed'] % 1000000
 
         self.scene_name = 'FloorPlan%d' % self.scene_num
         self.event = self.env.reset(self.scene_name)
@@ -138,32 +139,33 @@ class GameStateBase(object):
                 if 'empty' in objs:
                     for o, c in objs['empty']:
                         free_per_receptacle.append({'objectType': o, 'count': c})
-            self.env.step(dict(action='InitialRandomSpawn', randomSeed=seed, forceVisible=False,
-                               numRepeats=[{'objectType': o, 'count': c}
+            self.env.step(dict(action='InitialRandomSpawn', randomSeed=seed, forceVisible=True,
+                               numDuplicatesOfType=[{'objectType': o, 'count': c}
                                            for o, c in objs['repeat']]
                                if objs is not None and 'repeat' in objs else None,
-                               minFreePerReceptacleType=free_per_receptacle if objs is not None else None
+                               excludedReceptacles=[obj['objectType'] for obj in free_per_receptacle]
                                ))
 
             # if 'clean' action, make everything dirty and empty out fillable things
             if constants.pddl_goal_type == "pick_clean_then_place_in_recep":
-                self.env.step(dict(action='SetStateOfAllObjects',
-                                   StateChange="CanBeDirty",
-                                   forceAction=True))
+                # need to create a dictionary that contains all the object's type and state change.
+                
+                for o in objs['repeat']:
+                    self.env.step(dict(action='SetObjectStates',
+                                   SetObjectStates={'objectType': o[0], 'stateChange': 'dirtyable', 'isDirty': True}))
 
-                self.env.step(dict(action='SetStateOfAllObjects',
-                                   StateChange="CanBeFilled",
-                                   forceAction=False))
+                    self.env.step(dict(action='SetObjectStates',
+                                   SetObjectStates={'objectType': o[0], 'stateChange': 'canFillWithLiquid', 'isFilledWithLiquid': False}))
+
 
             if objs is not None and ('seton' in objs and len(objs['seton']) > 0):
-                self.env.step(dict(action='SetObjectToggles',
-                                   objectToggles=[{'objectType': o, 'isOn': v}
-                                                  for o, v in objs['seton']]))
+                for o, v in objs['seton']:
+                    self.env.step(dict(action='SetObjectStates', SetObjectStates={'objectType': o, 'stateChange': 'toggleable', 'isToggled': v}))
 
         self.gt_graph = graph_obj.Graph(use_gt=True, construct_graph=True, scene_id=self.scene_num)
 
         if seed is not None:
-            self.local_random.seed(seed)
+            self.local_random.seed(seed) 
             print('set seed in game_state_base reset', seed)
 
         self.bounds = np.array([self.gt_graph.xMin, self.gt_graph.yMin,
@@ -266,7 +268,7 @@ class GameStateBase(object):
             discrete_action['args']['point'] = point
             discrete_action['args']['mask'] = mask
         elif 'PutObject' in a_type:
-            bbox, point, mask = self.get_bbox_point_mask(action['receptacleObjectId'])
+            bbox, point, mask = self.get_bbox_point_mask(action['objectId'])
             discrete_action['action'] = "PutObject"
             discrete_action['args']['bbox'] = bbox
             discrete_action['args']['point'] = point
@@ -406,6 +408,10 @@ class GameStateBase(object):
                                 self.event = self.env.step(new_action)
                                 cv2.imwrite(constants.save_path + '/%09d.png' % im_ind,
                                             self.event.frame[:, :, ::-1])
+                                depth_image = self.event.depth_frame
+                                depth_image = depth_image * (255 / MAX_DEPTH)
+                                depth_image = depth_image.astype(np.uint8)
+                                cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                                 game_util.store_image_name('%09d.png' % im_ind)  # eww... seriously need to clean this up
                                 im_ind += 1
                         if np.abs(action['horizon'] - self.env.last_event.metadata['agent']['cameraHorizon']) > 0.001:
@@ -417,6 +423,10 @@ class GameStateBase(object):
                                 self.event = self.env.step(new_action)
                                 cv2.imwrite(constants.save_path + '/%09d.png' % im_ind,
                                             self.event.frame[:, :, ::-1])
+                                depth_image = self.event.depth_frame
+                                depth_image = depth_image * (255 / MAX_DEPTH)
+                                depth_image = depth_image.astype(np.uint8)
+                                cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                                 game_util.store_image_name('%09d.png' % im_ind)
                                 im_ind += 1
                         if np.abs(action['rotation'] - rotation['y']) > 0.001:
@@ -427,6 +437,10 @@ class GameStateBase(object):
                                 self.event = self.env.step(new_action)
                                 cv2.imwrite(constants.save_path + '/%09d.png' % im_ind,
                                             self.event.frame[:, :, ::-1])
+                                depth_image = self.event.depth_frame
+                                depth_image = depth_image * (255 / MAX_DEPTH)
+                                depth_image = depth_image.astype(np.uint8)
+                                cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                                 game_util.store_image_name('%09d.png' % im_ind)
                                 im_ind += 1
 
@@ -439,6 +453,10 @@ class GameStateBase(object):
                         for event in events:
                             im_ind = len(glob.glob(constants.save_path + '/*.png'))
                             cv2.imwrite(constants.save_path + '/%09d.png' % im_ind, event.frame[:, :, ::-1])
+                            depth_image = event.depth_frame
+                            depth_image = depth_image * (255 / MAX_DEPTH)
+                            depth_image = depth_image.astype(np.uint8)
+                            cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                             game_util.store_image_name('%09d.png' % im_ind)
 
                     elif 'Rotate' in action['action']:
@@ -448,6 +466,10 @@ class GameStateBase(object):
                         for event in events:
                             im_ind = len(glob.glob(constants.save_path + '/*.png'))
                             cv2.imwrite(constants.save_path + '/%09d.png' % im_ind, event.frame[:, :, ::-1])
+                            depth_image = event.depth_frame
+                            depth_image = depth_image * (255 / MAX_DEPTH)
+                            depth_image = depth_image.astype(np.uint8)
+                            cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                             game_util.store_image_name('%09d.png' % im_ind)
 
                     elif 'Look' in action['action']:
@@ -457,6 +479,10 @@ class GameStateBase(object):
                         for event in events:
                             im_ind = len(glob.glob(constants.save_path + '/*.png'))
                             cv2.imwrite(constants.save_path + '/%09d.png' % im_ind, event.frame[:, :, ::-1])
+                            depth_image = event.depth_frame
+                            depth_image = depth_image * (255 / MAX_DEPTH)
+                            depth_image = depth_image.astype(np.uint8)
+                            cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                             game_util.store_image_name('%09d.png' % im_ind)
 
                     elif 'OpenObject' in action['action']:
@@ -541,8 +567,7 @@ class GameStateBase(object):
 
                         # put the object
                         put_action = dict(action=action['action'],
-                                          objectId=action['objectId'],
-                                          receptacleObjectId=action['receptacleObjectId'],
+                                          objectId=action['receptacleObjectId'],
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -564,8 +589,7 @@ class GameStateBase(object):
                         sink_obj_id = self.get_some_visible_obj_of_name('SinkBasin')['objectId']
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=sink_obj_id,
+                                          objectId=sink_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -629,8 +653,7 @@ class GameStateBase(object):
                         # put the object in the microwave
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=microwave_obj_id,
+                                          objectId=microwave_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -690,8 +713,7 @@ class GameStateBase(object):
                         # put the object in the fridge
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=fridge_obj_id,
+                                          objectId=fridge_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -703,7 +725,7 @@ class GameStateBase(object):
 
                         # close and cool the object inside the frige
                         cool_action = dict(action='CloseObject',
-                                           objectId=action['objectId'])
+                                           objectId=action['receptacleObjectId'])
                         self.store_ll_action(cool_action)
                         self.save_act_image(action, dir=constants.BEFORE)
                         self.event = self.env.step(cool_action)
@@ -890,6 +912,10 @@ class GameStateBase(object):
             for i in range(count):
                 im_ind = len(glob.glob(constants.save_path + '/*.png'))
                 cv2.imwrite(constants.save_path + '/%09d.png' % im_ind, self.env.last_event.frame[:, :, ::-1])
+                depth_image = self.env.last_event.depth_frame
+                depth_image = depth_image * (255 / MAX_DEPTH)
+                depth_image = depth_image.astype(np.uint8)
+                cv2.imwrite(constants.save_depth_path + '/%09d.png' % im_ind, depth_image)
                 game_util.store_image_name('%09d.png' % im_ind)
 
                 self.env.noop()

@@ -2,14 +2,21 @@ import json
 import os
 import threading
 import time
-
+import sys
+sys.path.append(os.path.join('/home/jiasenl/code/alfred'))
+sys.path.append(os.path.join('/home/jiasenl/code/alfred', 'gen'))
 import cv2
 import numpy as np
 
+<<<<<<< HEAD:alfred/gen/layouts/precompute_layout_locations.py
 import gen.constants as constants
+=======
+import constants
+from utils import game_util
+>>>>>>> 32a288fd072df3d6b9ce80a16c1efbbd6a7280f7:gen/layouts/precompute_layout_locations.py
 from env.thor_env import ThorEnv
 
-N_PROCS = 40
+N_PROCS = 1
 
 lock = threading.Lock()
 all_scene_numbers = sorted(constants.TRAIN_SCENE_NUMBERS + constants.TEST_SCENE_NUMBERS, reverse=True)
@@ -18,7 +25,7 @@ all_scene_numbers = sorted(constants.TRAIN_SCENE_NUMBERS + constants.TEST_SCENE_
 def get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, good_obj_point):
 
     # Reset the scene to put all the objects back where they started.
-    game_util.reset(env, scene_name,
+    env.reset(scene_name,
                     render_image=False,
                     render_depth_image=False,
                     render_class_image=False,
@@ -97,7 +104,7 @@ def get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, goo
 def get_mask_of_obj(env, object_id):
     instance_detections2D = env.last_event.instance_detections2D
     instance_seg_frame = np.array(env.last_event.instance_segmentation_frame)
-
+    
     if object_id in instance_detections2D:
         color = env.last_event.object_id_to_color[object_id]
         seg_mask = cv2.inRange(instance_seg_frame, color, color)
@@ -108,11 +115,10 @@ def get_mask_of_obj(env, object_id):
         return None
 
 
-def run():
+def run(thread_num):
     print(all_scene_numbers)
     # create env and agent
-    env = game_util.create_env(build_path=constants.BUILD_PATH,
-                               quality='Low')
+    env = ThorEnv(build_path=constants.BUILD_PATH, x_display='0.%d' %(thread_num % 2), quality='Low')
     while len(all_scene_numbers) > 0:
         lock.acquire()
         scene_num = all_scene_numbers.pop()
@@ -130,11 +136,11 @@ def run():
 
         scene_name = ('FloorPlan%d') % scene_num
         print('Running ' + scene_name)
-        event = game_util.reset(env, scene_name,
-                                render_image=False,
-                                render_depth_image=False,
-                                render_class_image=False,
-                                render_object_image=True)
+        event = env.reset(scene_name,
+                            render_image=False,
+                            render_depth_image=False,
+                            render_class_image=False,
+                            render_object_image=True)
         agent_height = event.metadata['agent']['position']['y']
 
         scene_objs = list(set([obj['objectType'] for obj in event.metadata['objects']]))
@@ -153,7 +159,7 @@ def run():
             print("scene %d got %d reachable points, now checking" % (scene_num, len(reachable_points)))
 
             # Pick up a small object to use in testing whether points are good for openable objects.
-            open_test_objs = {'ButterKnife', 'CD', 'CellPhone', 'Cloth', 'CreditCard', 'DishSponge', 'Fork',
+            open_test_objs = {'CD', 'CellPhone', 'Cloth', 'CreditCard', 'DishSponge', 'Fork',
                               'KeyChain', 'Pen', 'Pencil', 'SoapBar', 'Spoon', 'Watch'}
             good_obj_point = None
             good_obj_point = get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, good_obj_point)
@@ -274,8 +280,7 @@ def run():
                                             # We can open the object, so try placing our small inventory obj inside.
                                             # If it can be placed inside and retrieved, then this is a safe point.
                                             action = {'action': 'PutObject',
-                                                      'objectId': inv_obj,
-                                                      'receptacleObjectId': obj['objectId'],
+                                                      'objectId': obj['objectId'],
                                                       'forceAction': True,
                                                       'placeStationary': True}
                                             if inv_obj:
@@ -346,7 +351,7 @@ def run():
 
 threads = []
 for n in range(N_PROCS):
-    thread = threading.Thread(target=run)
+    thread = threading.Thread(target=run, args=(n,))
     threads.append(thread)
     thread.start()
     time.sleep(1)

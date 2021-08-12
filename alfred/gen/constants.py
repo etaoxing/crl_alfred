@@ -38,14 +38,15 @@ PRUNE_UNREACHABLE_POINTS = True  # prune navigation points that were deemed unre
 ########################################################################################################################
 # Goals
 
-GOALS = ["pick_and_place_simple",
-         "pick_two_obj_and_place",
-         "look_at_obj_in_light",
+GOALS = [
+        "pick_and_place_simple",
+         "pick_two_obj_and_place",    
+        "look_at_obj_in_light",
          "pick_clean_then_place_in_recep",
          "pick_heat_then_place_in_recep",
          "pick_cool_then_place_in_recep",
-         "pick_and_place_with_movable_recep"]
-
+         "pick_and_place_with_movable_recep",
+        ]
 GOALS_VALID = {"pick_and_place_simple": {"Kitchen", "LivingRoom", "Bathroom", "Bedroom"},
                "pick_two_obj_and_place": {"Kitchen", "LivingRoom", "Bathroom", "Bedroom"},
                "look_at_obj_in_light": {"LivingRoom", "Bedroom"},
@@ -93,11 +94,11 @@ data_dict = OrderedDict()  # dictionary for storing trajectory data to be dumped
 BUILD_PATH = None
 
 AGENT_STEP_SIZE = 0.25
-AGENT_HORIZON_ADJ = 15
+AGENT_HORIZON_ADJ = 30
 AGENT_ROTATE_ADJ = 90
 CAMERA_HEIGHT_OFFSET = 0.75
 VISIBILITY_DISTANCE = 1.5
-HORIZON_GRANULARITY = 15
+HORIZON_GRANULARITY = 30
 
 RENDER_IMAGE = True
 RENDER_DEPTH_IMAGE = True
