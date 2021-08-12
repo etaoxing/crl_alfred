@@ -323,8 +323,8 @@ class TaskGameStateFullKnowledge(TaskGameState):
                 action['forceVisible'] = forceVisible
                 should_fail = False
         elif action['action'] == 'CleanObject':
-            action['objectId'] = action['receptacleObjectId']
-            action['cleanObjectId'] = action['objectId']
+            # action['objectId'] = action['receptacleObjectId']
+            action['objectId'] = action['objectId']  # 'cleanObjectId'
             action['forceVisible'] = forceVisible
             should_fail = False
         elif action['action'] in {'HeatObject', 'CoolObject'}:
@@ -436,8 +436,9 @@ class TaskGameStateFullKnowledge(TaskGameState):
 
                 if not parent['openable'] or parent['isOpen']:
                     parent_receptacle = parent['objectId']
-                    self.in_receptacle_ids[parent_receptacle].add(obj_id)
-                    self.object_to_point[obj_id] = self.receptacle_to_point[parent_receptacle]
-                    self.point_to_object[tuple(self.receptacle_to_point[parent_receptacle].tolist())] = obj_id
+                    if parent_receptacle in self.in_receptacle_ids:
+                        self.in_receptacle_ids[parent_receptacle].add(obj_id)
+                        self.object_to_point[obj_id] = self.receptacle_to_point[parent_receptacle]
+                        self.point_to_object[tuple(self.receptacle_to_point[parent_receptacle].tolist())] = obj_id
 
         self.need_plan_update = True

@@ -111,7 +111,7 @@ class GameStateBase(object):
 
         if scene is not None:
             self.scene_num = scene['scene_num']
-            seed = scene['random_seed']
+            seed = scene['random_seed'] % 1000000
 
         self.scene_name = 'FloorPlan%d' % self.scene_num
         self.event = self.env.reset(self.scene_name)
@@ -121,7 +121,6 @@ class GameStateBase(object):
             self.env.step(dict(
                 action='Initialize',
                 gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
-                cameraY=constants.CAMERA_HEIGHT_OFFSET,
                 renderImage=constants.RENDER_IMAGE,
                 renderDepthImage=constants.RENDER_DEPTH_IMAGE,
                 renderClassImage=constants.RENDER_CLASS_IMAGE,
@@ -138,27 +137,32 @@ class GameStateBase(object):
                 if 'empty' in objs:
                     for o, c in objs['empty']:
                         free_per_receptacle.append({'objectType': o, 'count': c})
-            self.env.step(dict(action='InitialRandomSpawn', randomSeed=seed, forceVisible=False,
-                               numRepeats=[{'objectType': o, 'count': c}
+
+            # see https://ai2thor.allenai.org/ithor/documentation/objects/domain-randomization/#initial-random-spawn
+            self.env.step(dict(action='InitialRandomSpawn', randomSeed=seed, forceVisible=True,
+                               numDuplicatesOfType=[{'objectType': o, 'count': c}
                                            for o, c in objs['repeat']]
                                if objs is not None and 'repeat' in objs else None,
-                               minFreePerReceptacleType=free_per_receptacle if objs is not None else None
+                               excludedReceptacles=[obj['objectType'] for obj in free_per_receptacle]
                                ))
 
             # if 'clean' action, make everything dirty and empty out fillable things
             if constants.pddl_goal_type == "pick_clean_then_place_in_recep":
-                self.env.step(dict(action='SetStateOfAllObjects',
-                                   StateChange="CanBeDirty",
-                                   forceAction=True))
+                # need to create a dictionary that contains all the object's type and state change
+                # see https://github.com/allenai/ai2thor/blob/a84dd29471ec2201f583de00257d84fac1a03de2/unity/Assets/Scripts/AgentManager.cs#L1603
+                # and https://github.com/allenai/ai2thor/blob/a84dd29471ec2201f583de00257d84fac1a03de2/unity/Assets/Scripts/PhysicsRemoteFPSAgentController.cs
 
-                self.env.step(dict(action='SetStateOfAllObjects',
-                                   StateChange="CanBeFilled",
-                                   forceAction=False))
+                for o, c in objs['repeat']:
+                    sd = {'objectType': o, 'stateChange': 'dirtyable', 'isDirty': True}
+                    self.env.step(dict(action='SetObjectStates', SetObjectStates=sd))
+
+                    sl = {'objectType': o[0], 'stateChange': 'canFillWithLiquid', 'isFilledWithLiquid': False}
+                    self.env.step(dict(action='SetObjectStates', SetObjectStates=sl))
 
             if objs is not None and ('seton' in objs and len(objs['seton']) > 0):
-                self.env.step(dict(action='SetObjectToggles',
-                                   objectToggles=[{'objectType': o, 'isOn': v}
-                                                  for o, v in objs['seton']]))
+                for o, v in objs['seton']:
+                    st = {'objectType': o, 'stateChange': 'toggleable', 'isToggled': v}
+                    self.env.step(dict(action='SetObjectStates', SetObjectStates=st))
 
         self.gt_graph = graph_obj.Graph(use_gt=True, construct_graph=True, scene_id=self.scene_num)
 
@@ -266,7 +270,7 @@ class GameStateBase(object):
             discrete_action['args']['point'] = point
             discrete_action['args']['mask'] = mask
         elif 'PutObject' in a_type:
-            bbox, point, mask = self.get_bbox_point_mask(action['receptacleObjectId'])
+            bbox, point, mask = self.get_bbox_point_mask(action['objectId'])
             discrete_action['action'] = "PutObject"
             discrete_action['args']['bbox'] = bbox
             discrete_action['args']['point'] = point
@@ -541,8 +545,7 @@ class GameStateBase(object):
 
                         # put the object
                         put_action = dict(action=action['action'],
-                                          objectId=action['objectId'],
-                                          receptacleObjectId=action['receptacleObjectId'],
+                                          objectId=action['receptacleObjectId'],
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -564,8 +567,7 @@ class GameStateBase(object):
                         sink_obj_id = self.get_some_visible_obj_of_name('SinkBasin')['objectId']
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=sink_obj_id,
+                                          objectId=sink_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -629,8 +631,7 @@ class GameStateBase(object):
                         # put the object in the microwave
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=microwave_obj_id,
+                                          objectId=microwave_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -690,8 +691,7 @@ class GameStateBase(object):
                         # put the object in the fridge
                         inv_obj = self.env.last_event.metadata['inventoryObjects'][0]
                         put_action = dict(action='PutObject',
-                                          objectId=inv_obj['objectId'],
-                                          receptacleObjectId=fridge_obj_id,
+                                          objectId=fridge_obj_id,
                                           forceAction=True,
                                           placeStationary=True)
                         self.store_ll_action(put_action)
@@ -703,7 +703,7 @@ class GameStateBase(object):
 
                         # close and cool the object inside the frige
                         cool_action = dict(action='CloseObject',
-                                           objectId=action['objectId'])
+                                           objectId=action['receptacleObjectId'])
                         self.store_ll_action(cool_action)
                         self.save_act_image(action, dir=constants.BEFORE)
                         self.event = self.env.step(cool_action)

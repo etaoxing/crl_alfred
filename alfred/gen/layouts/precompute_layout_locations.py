@@ -18,11 +18,11 @@ all_scene_numbers = sorted(constants.TRAIN_SCENE_NUMBERS + constants.TEST_SCENE_
 def get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, good_obj_point):
 
     # Reset the scene to put all the objects back where they started.
-    game_util.reset(env, scene_name,
-                    render_image=False,
-                    render_depth_image=False,
-                    render_class_image=False,
-                    render_object_image=True)
+    env.reset(scene_name,
+              render_image=False,
+              render_depth_image=False,
+              render_class_image=False,
+              render_object_image=True)
 
     if good_obj_point is not None:
         search_points = {good_obj_point[0]}
@@ -108,11 +108,12 @@ def get_mask_of_obj(env, object_id):
         return None
 
 
-def run():
+def run(thread_num):
     print(all_scene_numbers)
     # create env and agent
-    env = game_util.create_env(build_path=constants.BUILD_PATH,
-                               quality='Low')
+    env = ThorEnv(build_path=constants.BUILD_PATH,
+                  x_display='0.%d' % (thread_num % 2),
+                  quality='Low')
     while len(all_scene_numbers) > 0:
         lock.acquire()
         scene_num = all_scene_numbers.pop()
@@ -130,11 +131,11 @@ def run():
 
         scene_name = ('FloorPlan%d') % scene_num
         print('Running ' + scene_name)
-        event = game_util.reset(env, scene_name,
-                                render_image=False,
-                                render_depth_image=False,
-                                render_class_image=False,
-                                render_object_image=True)
+        event = env.reset(scene_name,
+                            render_image=False,
+                            render_depth_image=False,
+                            render_class_image=False,
+                            render_object_image=True)
         agent_height = event.metadata['agent']['position']['y']
 
         scene_objs = list(set([obj['objectType'] for obj in event.metadata['objects']]))
@@ -274,8 +275,7 @@ def run():
                                             # We can open the object, so try placing our small inventory obj inside.
                                             # If it can be placed inside and retrieved, then this is a safe point.
                                             action = {'action': 'PutObject',
-                                                      'objectId': inv_obj,
-                                                      'receptacleObjectId': obj['objectId'],
+                                                      'objectId': obj['objectId'],
                                                       'forceAction': True,
                                                       'placeStationary': True}
                                             if inv_obj:
@@ -346,7 +346,7 @@ def run():
 
 threads = []
 for n in range(N_PROCS):
-    thread = threading.Thread(target=run)
+    thread = threading.Thread(target=run, args=(n,))
     threads.append(thread)
     thread.start()
     time.sleep(1)

@@ -27,11 +27,13 @@ class ThorEnv(Controller):
                  player_screen_width=constants.DETECTION_SCREEN_WIDTH,
                  quality='MediumCloseFitShadows',
                  build_path=constants.BUILD_PATH):
-        super().__init__(quality=quality)
+        super().__init__(
+            quality=quality,
+            x_display=x_display,
+            height=player_screen_height,
+            width=player_screen_width,
+        )
         self.local_executable_path = build_path
-        self.start(x_display=str(x_display),
-                   player_screen_height=player_screen_height,
-                   player_screen_width=player_screen_width)
         self.task = None
 
         # internal states
@@ -43,7 +45,6 @@ class ThorEnv(Controller):
 
     def reset(self, scene_name_or_num,
               grid_size=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
-              camera_y=constants.CAMERA_HEIGHT_OFFSET,
               render_image=constants.RENDER_IMAGE,
               render_depth_image=constants.RENDER_DEPTH_IMAGE,
               render_class_image=constants.RENDER_CLASS_IMAGE,
@@ -65,7 +66,6 @@ class ThorEnv(Controller):
         event = super().step(dict(
             action='Initialize',
             gridSize=grid_size,
-            cameraY=camera_y,
             renderImage=render_image,
             renderDepthImage=render_depth_image,
             renderClassImage=render_class_image,
@@ -98,7 +98,6 @@ class ThorEnv(Controller):
         super().step(dict(
             action='Initialize',
             gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
-            cameraY=constants.CAMERA_HEIGHT_OFFSET,
             renderImage=constants.RENDER_IMAGE,
             renderDepthImage=constants.RENDER_DEPTH_IMAGE,
             renderClassImage=constants.RENDER_CLASS_IMAGE,
@@ -107,15 +106,19 @@ class ThorEnv(Controller):
             makeAgentsVisible=False,
         ))
         if len(object_toggles) > 0:
-            super().step((dict(action='SetObjectToggles', objectToggles=object_toggles)))
+            for o in object_toggles:
+                super().step((dict(action='SetObjectStates', SetObjectStates=o)))
 
         if dirty_and_empty:
-            super().step(dict(action='SetStateOfAllObjects',
-                               StateChange="CanBeDirty",
-                               forceAction=True))
-            super().step(dict(action='SetStateOfAllObjects',
-                               StateChange="CanBeFilled",
-                               forceAction=False))
+            for o in object_poses:
+                objectType = o['objectName'].split('_')[0]
+
+                sd = {'objectType': objectType, 'stateChange': 'dirtyable', 'isDirty': True}
+                super().step(dict(action='SetObjectStates', SetObjectStates=sd))
+
+                sf = {'objectType': objectType, 'stateChange': 'canFillWithLiquid', 'isFilledWithLiquid': False}
+                super().step(dict(action='SetObjectStates', SetObjectStates=sf))
+
         super().step((dict(action='SetObjectPoses', objectPoses=object_poses)))
 
     def set_task(self, traj, reward_type='sparse', max_episode_length=2000):
@@ -433,10 +436,8 @@ class ThorEnv(Controller):
                           objectId=object_id)
             event = self.step(action)
         elif "PutObject" in action:
-            inventory_object_id = self.last_event.metadata['inventoryObjects'][0]['objectId']
             action = dict(action="PutObject",
-                          objectId=inventory_object_id,
-                          receptacleObjectId=object_id,
+                          objectId=object_id,
                           forceAction=True,
                           placeStationary=True)
             event = self.step(action)

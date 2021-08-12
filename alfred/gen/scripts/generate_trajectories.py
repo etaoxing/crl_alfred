@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from collections import OrderedDict
 from datetime import datetime
+import glob
 
 import constants
 from agents.deterministic_planner_agent import DeterministicPlannerAgent
@@ -24,6 +25,7 @@ from utils.dataset_management_util import load_successes_from_disk, load_fails_f
 # params
 RAW_IMAGES_FOLDER = 'raw_images/'
 DATA_JSON_FILENAME = 'traj_data.json'
+DEPTH_IMAGES_FOLDER = 'depth_images/'
 
 # video saver
 video_saver = VideoSaver()
@@ -382,7 +384,8 @@ def print_successes(succ_traj):
     print("\n##################################")
 
 
-def main(args):
+def main(args, thread_num=0):
+    print(thread_num)
     # settings
     constants.DATA_SAVE_PATH = args.save_path
     print("Force Unsave Data: %s" % str(args.force_unsave))
@@ -423,12 +426,13 @@ def main(args):
         print_successes(succ_traj)
         return
 
+    print(succ_traj.groupby('goal').count())
     # pre-populate failed trajectories.
     fail_traj = load_fails_from_disk(args.save_path)
     print("Loaded %d known failed tuples" % len(fail_traj))
 
     # create env and agent
-    env = ThorEnv()
+    env = ThorEnv(x_display='0.%d' % (thread_num % 2))
 
     game_state = TaskGameStateFullKnowledge(env)
     agent = DeterministicPlannerAgent(thread_id=0, game_state=game_state)
@@ -456,16 +460,23 @@ def main(args):
                                       goal_candidates, pickup_candidates, movable_candidates,
                                       receptacle_candidates, scene_candidates)
 
+    traj_data_sampler = glob.iglob(os.path.join(constants.ET_DATA, "**", "traj_data.json"), recursive=True)
+
     # main generation loop
     # keeps trying out new task tuples as trajectories either fail or suceed
     while True:
-
-        sampled_task = next(task_sampler)
+        try:
+            json_path = next(traj_data_sampler)
+            sampled_task = json_path.split('/')[-3].split('-')
+            # sampled_task = next(task_sampler)
+        except StopIteration:
+            sampled_task = None
         print(sampled_task)  # DEBUG
         if sampled_task is None:
             sys.exit("No valid tuples left to sample (all are known to fail or already have %d trajectories" %
                      args.repeats_per_cond)
         gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene = sampled_task
+        sampled_scene = int(sampled_scene)
         print("sampled tuple: " + str((gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene)))
 
         tries_remaining = args.trials_before_fail
@@ -536,7 +547,7 @@ def main(args):
                                  'rotation': obj['rotation']}
                                 for obj in env.last_event.metadata['objects'] if obj['pickupable']]
                 dirty_and_empty = gtype == 'pick_clean_then_place_in_recep'
-                object_toggles = [{'objectType': o, 'isOn': v}
+                object_toggles = [{'objectType': o, 'stateChange': 'toggleable', 'isToggled': v}
                                   for o, v in constraint_objs['seton']]
                 constants.data_dict['scene']['object_poses'] = object_poses
                 constants.data_dict['scene']['dirty_and_empty'] = dirty_and_empty
@@ -644,8 +655,13 @@ def create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, scene_num):
     save_name = '%s-%s-%s-%s-%d' % (gtype, pickup_obj, movable_obj, receptacle_obj, scene_num) + '/' + task_id
 
     constants.save_path = os.path.join(constants.DATA_SAVE_PATH, save_name, RAW_IMAGES_FOLDER)
+    constants.save_depth_path = os.path.join(constants.DATA_SAVE_PATH, save_name, DEPTH_IMAGES_FOLDER)
+
     if not os.path.exists(constants.save_path):
         os.makedirs(constants.save_path)
+
+    if not os.path.exists(constants.save_depth_path):
+        os.makedirs(constants.save_depth_path)
 
     print("Saving images to: " + constants.save_path)
     return task_id
@@ -693,7 +709,7 @@ def delete_save(in_parallel):
 
 
 def parallel_main(args):
-    procs = [mp.Process(target=main, args=(args,)) for _ in range(args.num_threads)]
+    procs = [mp.Process(target=main, args=(args, thread_num)) for thread_num in range(args.num_threads)]
     try:
         for proc in procs:
             proc.start()
@@ -709,7 +725,7 @@ if __name__ == "__main__":
     # settings
     parser.add_argument('--force_unsave', action='store_true', help="don't save any data (for debugging purposes)")
     parser.add_argument('--debug', action='store_true')
-    parser.add_argument('--save_path', type=str, default="dataset/new_trajectories", help="where to save the generated data")
+    parser.add_argument('--save_path', type=str, default="dataset/new_trajectories_valid_seen", help="where to save the generated data")
     parser.add_argument('--x_display', type=str, required=False, default=constants.X_DISPLAY, help="x_display id")
     parser.add_argument("--just_examine", action='store_true', help="just examine what data is gathered; don't gather more")
     parser.add_argument("--in_parallel", action='store_true', help="this collection will run in parallel with others, so load from disk on every new sample")
