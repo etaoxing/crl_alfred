@@ -131,3 +131,16 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# FF Planner
+*.o
+*.pddl
+alfred/gen/ff_planner/ff
+alfred/gen/ff_planner/lex.fct_pddl.c
+alfred/gen/ff_planner/lex.ops_pddl.c
+alfred/gen/ff_planner/scan-fct_pddl.tab.c
+alfred/gen/ff_planner/scan-fct_pddl.tab.o
+alfred/gen/ff_planner/scan-ops_pddl.tab.c
+alfred/gen/ff_planner/scan-ops_pddl.tab.o
+alfred/gen/ff_planner/ff.dSYM/Contents/Info.plist
+alfred/gen/ff_planner/ff.dSYM/Contents/Resources/DWARF/ff
