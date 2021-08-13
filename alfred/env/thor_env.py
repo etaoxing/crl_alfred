@@ -22,7 +22,6 @@ class ThorEnv(Controller):
     an extension of ai2thor.controller.Controller for ALFRED tasks
     '''
     def __init__(self,
-                 x_display,
                  player_screen_height=constants.DETECTION_SCREEN_HEIGHT,
                  player_screen_width=constants.DETECTION_SCREEN_WIDTH,
                  quality='MediumCloseFitShadows'):

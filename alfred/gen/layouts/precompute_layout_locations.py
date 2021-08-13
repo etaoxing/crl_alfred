@@ -110,9 +110,7 @@ def get_mask_of_obj(env, object_id):
 
 def run(scene_num):
     # create env and agent
-    env = ThorEnv(build_path=constants.BUILD_PATH,
-                  x_display=constants.X_DISPLAY,
-                  quality='Low')
+    env = ThorEnv(quality='Low')
 
     if True:
         fn = os.path.join(
@@ -141,8 +139,7 @@ def run(scene_num):
             json.dump(scene_objs, sof, sort_keys=True, indent=4)
 
         # Get all the reachable points through Unity for this step size.
-        event = env.step(dict(action='GetReachablePositions',
-                         gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR))
+        event = env.step(dict(action='GetReachablePositions'))
         if event.metadata['actionReturn'] is None:
             print("ERROR: scene %d 'GetReachablePositions' returns None" % scene_num)
         else:

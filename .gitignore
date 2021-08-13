@@ -133,9 +133,12 @@ dmypy.json
 .pyre/
 
 # FF Planner/Alfred
+*.npy
+*.json
 *.png
 *.o
 *.pddl
+**/fails
 alfred/gen/ff_planner/ff
 alfred/gen/ff_planner/lex.fct_pddl.c
 alfred/gen/ff_planner/lex.ops_pddl.c
