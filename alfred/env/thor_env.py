@@ -278,12 +278,12 @@ class ThorEnv(Controller):
                     'y': position['y'],
                     'horizon': horizon,
                     'standing': standing,
-                    'tempRenderChange': True,
-                    'renderNormalsImage': False,
-                    'renderImage': render_settings['renderImage'],
-                    'renderClassImage': render_settings['renderClassImage'],
-                    'renderObjectImage': render_settings['renderObjectImage'],
-                    'renderDepthImage': render_settings['renderDepthImage'],
+                    # 'tempRenderChange': True,
+                    # 'renderNormalsImage': False,
+                    # 'renderImage': render_settings['renderImage'],
+                    # 'renderClassImage': render_settings['renderClassImage'],
+                    # 'renderObjectImage': render_settings['renderObjectImage'],
+                    # 'renderDepthImage': render_settings['renderDepthImage'],
                 }
                 event = super().step(teleport_action)
             else:
@@ -326,12 +326,12 @@ class ThorEnv(Controller):
                     'y': position['y'],
                     'horizon': np.round(start_horizon * (1 - xx) + end_horizon * xx, 3),
                     'standing': standing,
-                    'tempRenderChange': True,
-                    'renderNormalsImage': False,
-                    'renderImage': render_settings['renderImage'],
-                    'renderClassImage': render_settings['renderClassImage'],
-                    'renderObjectImage': render_settings['renderObjectImage'],
-                    'renderDepthImage': render_settings['renderDepthImage']
+                    # 'tempRenderChange': True,
+                    # 'renderNormalsImage': False,
+                    # 'renderImage': render_settings['renderImage'],
+                    # 'renderClassImage': render_settings['renderClassImage'],
+                    # 'renderObjectImage': render_settings['renderObjectImage'],
+                    # 'renderDepthImage': render_settings['renderDepthImage']
                 }
                 event = super().step(teleport_action)
             else:
@@ -371,12 +371,12 @@ class ThorEnv(Controller):
             'y': position['y'],
             'horizon': np.round(end_horizon, 3),
             'standing': standing,
-            'tempRenderChange': True,
-            'renderNormalsImage': False,
-            'renderImage': render_settings['renderImage'],
-            'renderClassImage': render_settings['renderClassImage'],
-            'renderObjectImage': render_settings['renderObjectImage'],
-            'renderDepthImage': render_settings['renderDepthImage'],
+            # 'tempRenderChange': True,
+            # 'renderNormalsImage': False,
+            # 'renderImage': render_settings['renderImage'],
+            # 'renderClassImage': render_settings['renderClassImage'],
+            # 'renderObjectImage': render_settings['renderObjectImage'],
+            # 'renderDepthImage': render_settings['renderDepthImage'],
         }
         event = super().step(teleport_action)
         return event
@@ -403,12 +403,12 @@ class ThorEnv(Controller):
             'y': position['y'],
             'horizon': horizon,
             'standing': standing,
-            'tempRenderChange': True,
-            'renderNormalsImage': False,
-            'renderImage': render_settings['renderImage'],
-            'renderClassImage': render_settings['renderClassImage'],
-            'renderObjectImage': render_settings['renderObjectImage'],
-            'renderDepthImage': render_settings['renderDepthImage'],
+            # 'tempRenderChange': True,
+            # 'renderNormalsImage': False,
+            # 'renderImage': render_settings['renderImage'],
+            # 'renderClassImage': render_settings['renderClassImage'],
+            # 'renderObjectImage': render_settings['renderObjectImage'],
+            # 'renderDepthImage': render_settings['renderDepthImage'],
         }
         event = super().step(teleport_action)
         return event

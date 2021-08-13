@@ -3,7 +3,7 @@ def validate_action(action_data):
     Ensure actions are valid for the current version of thor. Updates them as necessary.
     """
 
-    if action_data["action"] == "TeleportFull":
+    if action_data["action"] == "TeleportFull" or action_data["action"] == "Teleport":
         standing_state = action_data.get("standing", "True")
         action_data["standing"] = standing_state
 
@@ -12,7 +12,7 @@ def validate_action(action_data):
 
         action_data["action"] = "Teleport"
 
-    if action_data["action"] == "GetReachablePositions":
+    elif action_data["action"] == "GetReachablePositions":
         action_data.pop("gridSize", None)
         """
         Action: "GetReachablePositions" called with invalid argument: 'gridSize'

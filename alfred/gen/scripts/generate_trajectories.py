@@ -20,6 +20,7 @@ from alfred.gen.agents.deterministic_planner_agent import DeterministicPlannerAg
 from alfred.env.thor_env import ThorEnv
 from alfred.gen.game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
 from alfred.gen.utils import video_util, dataset_management_util
+from alfred.utils import thorapi_util
 
 # params
 RAW_IMAGES_FOLDER = 'raw_images/'
@@ -572,7 +573,7 @@ def main(args, thread_num=0):
                 terminal = False
                 while not terminal and agent.current_frame_count <= constants.MAX_EPISODE_LENGTH:
                     action_dict = agent.get_action(None)
-                    agent.step(action_dict)
+                    agent.step(thorapi_util.validate_action(action_dict))
                     reward, terminal = agent.get_reward()
 
                 dump_data_dict()
