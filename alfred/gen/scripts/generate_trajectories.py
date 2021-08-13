@@ -468,6 +468,11 @@ def main(args, thread_num=0):
         try:
             if args.only_traj_data:
                 json_path = next(traj_data_sampler)
+
+                if ('tests_seen' in json_path or 'tests_unseen' in json_path):
+                    if args.ignore_test_sets:
+                        continue
+
                 sampled_task = json_path.split('/')[-3].split('-')
             else:
                 sampled_task = next(task_sampler)
@@ -726,6 +731,7 @@ if __name__ == "__main__":
 
     # settings
     parser.add_argument('--only_traj_data', action='store_true', help="only use collected demos from traj_data.json, not generated data")
+    parser.add_argument('--ignore_test_sets', action='store_true', help="skip the test sets")
     parser.add_argument('--force_unsave', action='store_true', help="don't save any data (for debugging purposes)")
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--save_path', type=str, default="dataset/new_trajectories_valid_seen", help="where to save the generated data")
