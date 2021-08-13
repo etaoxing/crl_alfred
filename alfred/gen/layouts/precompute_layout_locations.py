@@ -1,13 +1,18 @@
-import json
 import os
+import sys
+sys.path.append(os.path.join(os.environ['ALFRED_ROOT']))
+sys.path.append(os.path.join(os.environ['ALFRED_ROOT'], 'gen'))
+
+import json
 import threading
 import time
 
 import cv2
 import numpy as np
 
-import alfred.gen.constants as constants
+from alfred.gen import constants
 from alfred.env.thor_env import ThorEnv
+from alfred.utils import thorapi_util
 
 N_PROCS = 1
 
@@ -113,7 +118,7 @@ def run(thread_num):
     print(all_scene_numbers)
     # create env and agent
     env = ThorEnv(build_path=constants.BUILD_PATH,
-                  x_display='0.%d' % (thread_num % 2),
+                  x_display=constants.X_DISPLAY,
                   quality='Low')
     while len(all_scene_numbers) > 0:
         lock.acquire()
