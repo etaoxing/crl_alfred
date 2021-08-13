@@ -6,16 +6,16 @@ import time
 import cv2
 import numpy as np
 
-import gen.constants as constants
-from env.thor_env import ThorEnv
+import alfred.gen.constants as constants
+from alfred.env.thor_env import ThorEnv
 
-N_PROCS = 40
+N_PROCS = 1
 
 lock = threading.Lock()
 all_scene_numbers = sorted(constants.TRAIN_SCENE_NUMBERS + constants.TEST_SCENE_NUMBERS, reverse=True)
 
 
-def get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, good_obj_point):
+def get_obj(env, open_test_objs, reachable_points, agent_height, agent_standing, scene_name, good_obj_point):
 
     # Reset the scene to put all the objects back where they started.
     env.reset(scene_name,
@@ -43,7 +43,8 @@ def get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, goo
                           'z': point[1],
                           'rotateOnTeleport': True,
                           'rotation': rotation * 90,
-                          'horizon': horizon
+                          'horizon': horizon,
+                          'standing': agent_standing
                           }
                 event = env.step(action)
                 if event.metadata['lastActionSuccess']:
@@ -137,6 +138,7 @@ def run(thread_num):
                             render_class_image=False,
                             render_object_image=True)
         agent_height = event.metadata['agent']['position']['y']
+        agent_standing = event.metadata['agent']['isStanding']
 
         scene_objs = list(set([obj['objectType'] for obj in event.metadata['objects']]))
         with open(scene_objs_json_file, 'w') as sof:
@@ -157,8 +159,7 @@ def run(thread_num):
             open_test_objs = {'ButterKnife', 'CD', 'CellPhone', 'Cloth', 'CreditCard', 'DishSponge', 'Fork',
                               'KeyChain', 'Pen', 'Pencil', 'SoapBar', 'Spoon', 'Watch'}
             good_obj_point = None
-            good_obj_point = get_obj(env, open_test_objs, reachable_points, agent_height, scene_name, good_obj_point)
-
+            good_obj_point = get_obj(env, open_test_objs, reachable_points, agent_height, agent_standing, scene_name, good_obj_point)
 
             best_open_point = {}  # map from object names to the best point from which they can be successfully opened
             best_sem_coverage = {}  # number of pixels in the semantic map of the receptacle at the existing best openpt
@@ -170,6 +171,9 @@ def run(thread_num):
                           'x': point[0],
                           'y': agent_height,
                           'z': point[1],
+                          'rotation': 0,
+                          'horizon': event.metadata['agent']['cameraHorizon'],
+                          'standing': agent_standing
                           }
                 event = env.step(action)
                 if event.metadata['lastActionSuccess']:
@@ -180,7 +184,8 @@ def run(thread_num):
                                   'z': point[1],
                                   'rotateOnTeleport': True,
                                   'rotation': 0,
-                                  'horizon': horizon
+                                  'horizon': horizon,
+                                  'standing': agent_standing
                                   }
                         event = env.step(action)
                         if not event.metadata['lastActionSuccess']:
@@ -210,7 +215,8 @@ def run(thread_num):
                                       'z': point[1],
                                       'rotateOnTeleport': True,
                                       'rotation': rotation * 90,
-                                      'horizon': horizon
+                                      'horizon': horizon,
+                                      'standing': agent_standing
                                       }
                             event = env.step(action)
                             for obj in event.metadata['objects']:
@@ -303,14 +309,16 @@ def run(thread_num):
                                                 # We could not retrieve our inv object, so we need to go get another one
                                                 else:
                                                     good_obj_point = get_obj(env, open_test_objs, reachable_points,
-                                                                             agent_height, scene_name, good_obj_point)
+                                                                             agent_height, agent_standing, scene_name,
+                                                                             good_obj_point)
                                                     action = {'action': 'TeleportFull',
                                                               'x': point[0],
                                                               'y': agent_height,
                                                               'z': point[1],
                                                               'rotateOnTeleport': True,
                                                               'rotation': rotation * 90,
-                                                              'horizon': horizon
+                                                              'horizon': horizon,
+                                                              'standing': agent_standing
                                                               }
                                                     event = env.step(action)
 

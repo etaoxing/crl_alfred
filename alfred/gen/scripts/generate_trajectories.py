@@ -642,7 +642,7 @@ def main(args, thread_num=0):
             else:
                 print("Reloading trajectories from disk because of parallel processes...")
                 succ_traj = pd.DataFrame(columns=succ_traj.columns)  # Drop all rows.
-                succ_traj, full_traj = load_successes_from_disk(args.save_path, succ_traj, False, args.repeats_per_cond)
+                succ_traj, full_traj = dataset_management_util.load_successes_from_disk(args.save_path, succ_traj, False, args.repeats_per_cond)
                 print("... Loaded %d trajectories" % len(succ_traj.index))
                 n_until_load_successes = args.async_load_every_n_samples
                 print_successes(succ_traj)
