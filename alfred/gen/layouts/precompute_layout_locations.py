@@ -150,10 +150,8 @@ def run(thread_num):
             json.dump(scene_objs, sof, sort_keys=True, indent=4)
 
         # Get all the reachable points through Unity for this step size.
-        event = env.step(thorapi_util.validate_action(
-            dict(action='GetReachablePositions',
-                gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR))
-        )
+        event = env.step(dict(action='GetReachablePositions',
+                         gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR))
         if event.metadata['actionReturn'] is None:
             print("ERROR: scene %d 'GetReachablePositions' returns None" % scene_num)
         else:

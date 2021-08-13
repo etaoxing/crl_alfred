@@ -10,7 +10,7 @@ from ..gen import constants
 from ..gen.utils import image_util
 from ..env.tasks import get_task
 from ..gen.utils import game_util
-
+from ..utils import thorapi_util
 
 DEFAULT_RENDER_SETTINGS = {'renderImage': True,
                            'renderDepthImage': False,
@@ -135,6 +135,8 @@ class ThorEnv(Controller):
         overrides ai2thor.controller.Controller.step() for smooth navigation and goal_condition updates
         '''
         if isinstance(action, dict):
+            action = thorapi_util.validate_action(action)
+
             if smooth_nav:
                 if "MoveAhead" in action['action']:
                     self.smooth_move_ahead(action)
