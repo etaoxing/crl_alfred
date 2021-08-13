@@ -11,4 +11,15 @@ def validate_action(action_data):
             action_data.pop("rotation", None)
 
         action_data["action"] = "Teleport"
+
+    if action_data["action"] == "GetReachablePositions":
+        action_data.pop("gridSize", None)
+        """
+        Action: "GetReachablePositions" called with invalid argument: 'gridSize'
+        Expected arguments: Nullable`1 maxStepCount = , Boolean directionsRelativeAgent = False
+        Your arguments: 'gridSize'
+        Valid ways to call "GetReachablePositions" action:
+                Void GetReachablePositions(Nullable`1 maxStepCount = , Boolean directionsRelativeAgent = False)
+        """
+
     return action_data
