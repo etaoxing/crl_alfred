@@ -25,16 +25,13 @@ class ThorEnv(Controller):
                  x_display,
                  player_screen_height=constants.DETECTION_SCREEN_HEIGHT,
                  player_screen_width=constants.DETECTION_SCREEN_WIDTH,
-                 quality='MediumCloseFitShadows',
-                 build_path=constants.BUILD_PATH):
+                 quality='MediumCloseFitShadows'):
         self.task = None  # set this before since init() will call reset()
         super().__init__(
             quality=quality,
-            x_display=x_display,
             height=player_screen_height,
             width=player_screen_width,
         )
-        self.local_executable_path = build_path
 
         # internal states
         self.cleaned_objects = set()
