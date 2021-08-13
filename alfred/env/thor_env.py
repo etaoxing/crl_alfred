@@ -10,7 +10,7 @@ from ..gen import constants
 from ..gen.utils import image_util
 from ..env.tasks import get_task
 from ..gen.utils import game_util
-
+from ..utils import thorapi_util
 
 DEFAULT_RENDER_SETTINGS = {'renderImage': True,
                            'renderDepthImage': False,
@@ -47,7 +47,7 @@ class ThorEnv(Controller):
               render_class_image=constants.RENDER_CLASS_IMAGE,
               render_object_image=constants.RENDER_OBJECT_IMAGE,
               visibility_distance=constants.VISIBILITY_DISTANCE,
-              silent=False):
+              silent=True):
         '''
         reset scene and task states
         '''
@@ -132,6 +132,8 @@ class ThorEnv(Controller):
         overrides ai2thor.controller.Controller.step() for smooth navigation and goal_condition updates
         '''
         if isinstance(action, dict):
+            action = thorapi_util.validate_action(action)
+
             if smooth_nav:
                 if "MoveAhead" in action['action']:
                     self.smooth_move_ahead(action)
@@ -273,12 +275,12 @@ class ThorEnv(Controller):
                     'y': position['y'],
                     'horizon': horizon,
                     'standing': standing,
-                    'tempRenderChange': True,
-                    'renderNormalsImage': False,
-                    'renderImage': render_settings['renderImage'],
-                    'renderClassImage': render_settings['renderClassImage'],
-                    'renderObjectImage': render_settings['renderObjectImage'],
-                    'renderDepthImage': render_settings['renderDepthImage'],
+                    # 'tempRenderChange': True,
+                    # 'renderNormalsImage': False,
+                    # 'renderImage': render_settings['renderImage'],
+                    # 'renderClassImage': render_settings['renderClassImage'],
+                    # 'renderObjectImage': render_settings['renderObjectImage'],
+                    # 'renderDepthImage': render_settings['renderDepthImage'],
                 }
                 event = super().step(teleport_action)
             else:
@@ -321,12 +323,12 @@ class ThorEnv(Controller):
                     'y': position['y'],
                     'horizon': np.round(start_horizon * (1 - xx) + end_horizon * xx, 3),
                     'standing': standing,
-                    'tempRenderChange': True,
-                    'renderNormalsImage': False,
-                    'renderImage': render_settings['renderImage'],
-                    'renderClassImage': render_settings['renderClassImage'],
-                    'renderObjectImage': render_settings['renderObjectImage'],
-                    'renderDepthImage': render_settings['renderDepthImage']
+                    # 'tempRenderChange': True,
+                    # 'renderNormalsImage': False,
+                    # 'renderImage': render_settings['renderImage'],
+                    # 'renderClassImage': render_settings['renderClassImage'],
+                    # 'renderObjectImage': render_settings['renderObjectImage'],
+                    # 'renderDepthImage': render_settings['renderDepthImage']
                 }
                 event = super().step(teleport_action)
             else:
@@ -366,12 +368,12 @@ class ThorEnv(Controller):
             'y': position['y'],
             'horizon': np.round(end_horizon, 3),
             'standing': standing,
-            'tempRenderChange': True,
-            'renderNormalsImage': False,
-            'renderImage': render_settings['renderImage'],
-            'renderClassImage': render_settings['renderClassImage'],
-            'renderObjectImage': render_settings['renderObjectImage'],
-            'renderDepthImage': render_settings['renderDepthImage'],
+            # 'tempRenderChange': True,
+            # 'renderNormalsImage': False,
+            # 'renderImage': render_settings['renderImage'],
+            # 'renderClassImage': render_settings['renderClassImage'],
+            # 'renderObjectImage': render_settings['renderObjectImage'],
+            # 'renderDepthImage': render_settings['renderDepthImage'],
         }
         event = super().step(teleport_action)
         return event
@@ -398,12 +400,12 @@ class ThorEnv(Controller):
             'y': position['y'],
             'horizon': horizon,
             'standing': standing,
-            'tempRenderChange': True,
-            'renderNormalsImage': False,
-            'renderImage': render_settings['renderImage'],
-            'renderClassImage': render_settings['renderClassImage'],
-            'renderObjectImage': render_settings['renderObjectImage'],
-            'renderDepthImage': render_settings['renderDepthImage'],
+            # 'tempRenderChange': True,
+            # 'renderNormalsImage': False,
+            # 'renderImage': render_settings['renderImage'],
+            # 'renderClassImage': render_settings['renderClassImage'],
+            # 'renderObjectImage': render_settings['renderObjectImage'],
+            # 'renderDepthImage': render_settings['renderDepthImage'],
         }
         event = super().step(teleport_action)
         return event

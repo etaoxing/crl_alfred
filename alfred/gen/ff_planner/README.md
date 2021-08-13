@@ -11,11 +11,3 @@ To compile:
 $ cd
 $ make
 ```
-
-
-#Notes from Sam:
-Had to make sure I was using gcc 7 (on mac: `brew install gcc@7`, then use gcc-7 in the Makefile). Other versions
-may also work - I have reason to believe any of 6-9 are okay.
-```
-conda install -c conda-forge/label/gcc7 flex
-```

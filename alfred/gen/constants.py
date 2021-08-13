@@ -91,7 +91,7 @@ data_dict = OrderedDict()  # dictionary for storing trajectory data to be dumped
 # Unity Hyperparameters
 
 BUILD_PATH = None
-X_DISPLAY = '0'
+X_DISPLAY = None  # set None so cloudrendering
 
 AGENT_STEP_SIZE = 0.25
 AGENT_HORIZON_ADJ = 15
@@ -1254,7 +1254,7 @@ OBJ_CLS_VOCAB = 'files/obj_cls.vocab'
 # TRAJECTORIES GENERATION
 LOG_FILE = os.path.join(ET_DATA, 'logs_gen')
 # paths to layouts
-LAYOUTS_PATH = os.path.join(ET_ROOT, 'alfred/gen/layouts')
+LAYOUTS_PATH = os.path.join(ET_ROOT, 'alfred/data/layouts')
 FF_PATH = os.path.join(ET_ROOT, 'alfred/gen/ff_planner/ff')
 PLANNER_PATH = os.path.join(ET_ROOT, 'alfred/gen/planner')
 # scene numbers from the paper

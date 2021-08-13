@@ -20,6 +20,7 @@ from alfred.gen.agents.deterministic_planner_agent import DeterministicPlannerAg
 from alfred.env.thor_env import ThorEnv
 from alfred.gen.game_states.task_game_state_full_knowledge import TaskGameStateFullKnowledge
 from alfred.gen.utils import video_util, dataset_management_util
+from alfred.utils import thorapi_util
 
 # params
 RAW_IMAGES_FOLDER = 'raw_images/'
@@ -432,7 +433,7 @@ def main(args, thread_num=0):
     print("Loaded %d known failed tuples" % len(fail_traj))
 
     # create env and agent
-    env = ThorEnv(x_display='0.%d' % (thread_num % 2))
+    env = ThorEnv(x_display=constants.X_DISPLAY)
 
     game_state = TaskGameStateFullKnowledge(env)
     agent = DeterministicPlannerAgent(thread_id=0, game_state=game_state)
@@ -468,6 +469,11 @@ def main(args, thread_num=0):
         try:
             if args.only_traj_data:
                 json_path = next(traj_data_sampler)
+
+                if ('tests_seen' in json_path or 'tests_unseen' in json_path):
+                    if args.ignore_test_sets:
+                        continue
+
                 sampled_task = json_path.split('/')[-3].split('-')
             else:
                 sampled_task = next(task_sampler)
@@ -567,7 +573,7 @@ def main(args, thread_num=0):
                 terminal = False
                 while not terminal and agent.current_frame_count <= constants.MAX_EPISODE_LENGTH:
                     action_dict = agent.get_action(None)
-                    agent.step(action_dict)
+                    agent.step(thorapi_util.validate_action(action_dict))
                     reward, terminal = agent.get_reward()
 
                 dump_data_dict()
@@ -726,6 +732,7 @@ if __name__ == "__main__":
 
     # settings
     parser.add_argument('--only_traj_data', action='store_true', help="only use collected demos from traj_data.json, not generated data")
+    parser.add_argument('--ignore_test_sets', action='store_true', help="skip the test sets")
     parser.add_argument('--force_unsave', action='store_true', help="don't save any data (for debugging purposes)")
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--save_path', type=str, default="dataset/new_trajectories_valid_seen", help="where to save the generated data")

@@ -1,17 +1,16 @@
-import json
 import os
-import threading
-import time
+import sys
+sys.path.append(os.path.join(os.environ['ALFRED_ROOT']))
+sys.path.append(os.path.join(os.environ['ALFRED_ROOT'], 'gen'))
+
+import json
 
 import cv2
 import numpy as np
 
-import alfred.gen.constants as constants
+from alfred.gen import constants
 from alfred.env.thor_env import ThorEnv
 
-N_PROCS = 1
-
-lock = threading.Lock()
 all_scene_numbers = sorted(constants.TRAIN_SCENE_NUMBERS + constants.TEST_SCENE_NUMBERS, reverse=True)
 
 
@@ -109,21 +108,18 @@ def get_mask_of_obj(env, object_id):
         return None
 
 
-def run(thread_num):
-    print(all_scene_numbers)
+def run(scene_num):
     # create env and agent
     env = ThorEnv(build_path=constants.BUILD_PATH,
-                  x_display='0.%d' % (thread_num % 2),
+                  x_display=constants.X_DISPLAY,
                   quality='Low')
-    while len(all_scene_numbers) > 0:
-        lock.acquire()
-        scene_num = all_scene_numbers.pop()
-        lock.release()
+
+    if True:
         fn = os.path.join(
             constants.LAYOUTS_PATH, ('FloorPlan%d-layout.npy') % scene_num)
         if os.path.isfile(fn):
             print("file %s already exists; skipping this floorplan" % fn)
-            continue
+            return
 
         openable_json_file = os.path.join(
             constants.LAYOUTS_PATH, ('FloorPlan%d-openable.json') % scene_num)
@@ -146,7 +142,7 @@ def run(thread_num):
 
         # Get all the reachable points through Unity for this step size.
         event = env.step(dict(action='GetReachablePositions',
-                              gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR))
+                         gridSize=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR))
         if event.metadata['actionReturn'] is None:
             print("ERROR: scene %d 'GetReachablePositions' returns None" % scene_num)
         else:
@@ -176,6 +172,7 @@ def run(thread_num):
                           'standing': agent_standing
                           }
                 event = env.step(action)
+
                 if event.metadata['lastActionSuccess']:
                     for horizon in [-30, 0, 30]:
                         action = {'action': 'TeleportFull',
@@ -352,9 +349,13 @@ def run(thread_num):
     print('Done')
 
 
-threads = []
-for n in range(N_PROCS):
-    thread = threading.Thread(target=run, args=(n,))
-    threads.append(thread)
-    thread.start()
-    time.sleep(1)
+if __name__ == '__main__':
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from tqdm import tqdm
+
+    W = int(sys.argv[-1])
+
+    with ProcessPoolExecutor(max_workers=W) as executor:
+        futures = [executor.submit(run, scene_num) for scene_num in all_scene_numbers]
+        for f in tqdm(as_completed(futures), total=len(futures)):
+            f.result()

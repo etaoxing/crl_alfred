@@ -8,11 +8,12 @@ import json
 import numpy as np
 import shutil
 import time
-from env.thor_env import ThorEnv
-from utils.replay_json import replay_json
 import multiprocessing as mp
 import time
 
+from alfred.gen import constants
+from alfred.env.thor_env import ThorEnv
+from alfred.gen.utils.replay_json import replay_json
 
 JSON_FILENAME = "traj_data.json"
 
@@ -28,7 +29,7 @@ def parallel_replay_check(args):
             proc.join()
 
 def replay_check(args, thread_num=0):
-    env = ThorEnv(x_display='0.%d' % (thread_num % args.total_gpu))
+    env = ThorEnv(x_display=constants.X_DISPLAY)
 
     # replay certificate filenames
     replay_certificate_filenames = ["replay.certificate.%d" % idx for idx in range(args.num_replays)]
