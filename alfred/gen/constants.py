@@ -1254,7 +1254,7 @@ OBJ_CLS_VOCAB = 'files/obj_cls.vocab'
 # TRAJECTORIES GENERATION
 LOG_FILE = os.path.join(ET_DATA, 'logs_gen')
 # paths to layouts
-LAYOUTS_PATH = os.path.join(ET_ROOT, 'alfred/gen/layouts')
+LAYOUTS_PATH = os.path.join(ET_ROOT, 'alfred/data/layouts')
 FF_PATH = os.path.join(ET_ROOT, 'alfred/gen/ff_planner/ff')
 PLANNER_PATH = os.path.join(ET_ROOT, 'alfred/gen/planner')
 # scene numbers from the paper

@@ -50,7 +50,7 @@ class ThorEnv(Controller):
               render_class_image=constants.RENDER_CLASS_IMAGE,
               render_object_image=constants.RENDER_OBJECT_IMAGE,
               visibility_distance=constants.VISIBILITY_DISTANCE,
-              silent=False):
+              silent=True):
         '''
         reset scene and task states
         '''
