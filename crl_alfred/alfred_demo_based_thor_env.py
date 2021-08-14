@@ -41,38 +41,35 @@ class AlfredDemoBasedThorEnv(gym.Env):
     References:
     https://ai2thor.allenai.org/ithor/documentation/environment-state/#agent-simulator-loop
     """
-    def __init__(self, which_dataset, demo_name, x_display='0', max_fails=10):
+    def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, raw_image_ext='.png'):
         assert which_dataset in set(['train', 'val_seen', 'val_unseen', 'test_seen', 'test_unseen'])
+        assert isinstance(demo_names, list)
 
         self.which_dataset = which_dataset
-        self.demo_name = demo_name
+        self.demo_counter = -1
+        self.demo_names = demo_names
+        self.raw_image_ext = raw_image_ext
 
         self.max_fails = max_fails  # see alfred.config.cfg_eval
-
-        self.demo_dir = os.path.join(
-            ALFRED_DEMO_DIR,
-            self.which_dataset,
-            self.demo_name,
-        )
-
-        json_file = os.path.join(self.demo_dir, JSON_FILENAME)
-        with open(json_file, 'r') as f:
-            self.traj_data = json.load(f)
 
         self.env = ThorEnv(x_display=x_display)
 
         self.seed()
 
     @property
+    def demo_name(self):
+        return self.demo_names[self.demo_counter]
+
+    @property
     def observation_space(self):
         d = dict(
             frame=gym.spaces.Box(
                 low=0, high=255,
-                shape=(self.height, self.width, 3),
+                shape=(self.env.height, self.env.width, 3),
                 dtype=np.uint8,
             )
         )
-        d['goal_frame'] = copy.deepcopy(self.goal_frame)
+        d['goal_frame'] = copy.deepcopy(d['frame'])
         return gym.spaces.Dict(d)
 
     @property
@@ -153,8 +150,9 @@ class AlfredDemoBasedThorEnv(gym.Env):
         image_path = os.path.join(
             self.demo_dir,
             'raw_images',
-            self.traj_data['images'][i]['image_name'].replace('.png', '.jpg')
+            self.traj_data['images'][i]['image_name'].split('.')[0] + self.raw_image_ext,
         )
+        
         self.goal_frame = np.array(Image.open(image_path))
 
         self.low_idx = self.traj_data['images'][i]['low_idx']
@@ -165,7 +163,24 @@ class AlfredDemoBasedThorEnv(gym.Env):
         # should have been incremented accordingly.
         self.api_action = self.traj_data['plan']['low_actions'][self.low_idx]['api_action']
 
+    def load_traj_data(self):
+        self.demo_dir = os.path.join(
+            ALFRED_DEMO_DIR,
+            self.which_dataset,
+            self.demo_name,
+        )
+        print(self.demo_dir)
+
+        json_file = os.path.join(self.demo_dir, JSON_FILENAME)
+        with open(json_file, 'r') as f:
+            self.traj_data = json.load(f)
+
     def reset(self):
+        self.demo_counter += 1
+        if self.demo_counter >= len(self.demo_names):  # loop around
+            self.demo_counter = 0
+        self.load_traj_data()
+
         eval_util.setup_scene(
             self.env,
             self.traj_data,
@@ -190,9 +205,12 @@ class AlfredDemoBasedThorEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def __del__(self):
+        self.close()
+
 
 if __name__ == '__main__':
-    env = AlfredDemoBasedThorEnv('train', 'pick_clean_then_place_in_recep-LettuceSliced-None-Fridge-19/trial_T20190909_010053_518756')
+    env = AlfredDemoBasedThorEnv('train', ['pick_and_place_simple-Cloth-None-CounterTop-414/trial_T20210813_231110_515422'])
     env.reset()
     o = env.step(0)
     print(o)
