@@ -1,0 +1,1 @@
+from .alfred_demo_based_thor_env import AlfredDemoBasedThorEnv
