@@ -52,7 +52,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
 
         self.max_fails = max_fails  # see alfred.config.cfg_eval
 
-        self.env = ThorEnv(x_display=x_display)
+        self.env = ThorEnv()
 
         self.seed()
 
