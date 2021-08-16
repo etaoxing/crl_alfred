@@ -161,7 +161,7 @@ class GameStateBase(object):
 
             if objs is not None and ('seton' in objs and len(objs['seton']) > 0):
                 for o, v in objs['seton']:
-                    raise Exception(f"SetObjectStates just hangs, so just skipping these trajectories for now. (o, v)")
+                    raise Exception(f"SetObjectStates just hangs, so just skipping these trajectories for now. ({o, v})")
                     st = {'objectType': o, 'stateChange': 'toggleable', 'isToggled': v}
                     print(f"Setting object state: {st}. Objects of type: {self.env.step('Pass').objects_by_type(o)}")
                     self.env.step(dict(action='SetObjectStates', SetObjectStates=st))
