@@ -504,7 +504,7 @@ def main(args, thread_num=0):
                 # environment setup
                 constants.pddl_goal_type = gtype
                 print("PDDLGoalType: " + constants.pddl_goal_type)
-                task_id = create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene)
+                task_id = create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene, args.repeats_per_cond)
 
                 # setup data dictionary
                 setup_data_dict()
@@ -658,7 +658,7 @@ def main(args, thread_num=0):
                 print("... Created fresh instance of sample_task_params generator")
 
 
-def create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, scene_num):
+def create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, scene_num, repeats_per_cond):
     task_id = 'trial_T' + datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     task_name = '%s-%s-%s-%s-%d' % (gtype, pickup_obj, movable_obj, receptacle_obj, scene_num)
 
@@ -666,7 +666,8 @@ def create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, scene_num):
     constants.save_path = os.path.join(task_path, task_id, RAW_IMAGES_FOLDER)
     constants.save_depth_path = os.path.join(task_path, task_id, DEPTH_IMAGES_FOLDER)
 
-    assert not os.path.exists(task_path), "Attempting to generate trials for a task that has already been generated. Skipping."
+    # If we have fewer trial folders than desirable number of trials, or if the task hasn't been generated at all, continue
+    assert not os.path.exists(task_path) or len(next(os.walk(task_path))[1]) < repeats_per_cond, "Attempting to generate trials for a task that has already been generated. Skipping."
 
     if not os.path.exists(constants.save_path):
         os.makedirs(constants.save_path)
