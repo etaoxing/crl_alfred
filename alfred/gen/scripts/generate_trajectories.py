@@ -499,20 +499,19 @@ def main(args, thread_num=0):
 
         # continue until we're (out of tries + have never succeeded) or (have gathered the target number of instances)
         while tries_remaining > 0 and target_remaining > 0:
-
-            # environment setup
-            constants.pddl_goal_type = gtype
-            print("PDDLGoalType: " + constants.pddl_goal_type)
-            task_id = create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene)
-
-            # setup data dictionary
-            setup_data_dict()
-            constants.data_dict['task_id'] = task_id
-            constants.data_dict['task_type'] = constants.pddl_goal_type
-            constants.data_dict['dataset_params']['video_frame_rate'] = constants.VIDEO_FRAME_RATE
-
             # plan & execute
             try:
+                # environment setup
+                constants.pddl_goal_type = gtype
+                print("PDDLGoalType: " + constants.pddl_goal_type)
+                task_id = create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene)
+
+                # setup data dictionary
+                setup_data_dict()
+                constants.data_dict['task_id'] = task_id
+                constants.data_dict['task_type'] = constants.pddl_goal_type
+                constants.data_dict['dataset_params']['video_frame_rate'] = constants.VIDEO_FRAME_RATE
+
                 # Agent reset to new scene.
                 constraint_objs = {'repeat': [(constants.OBJ_PARENTS[pickup_obj],  # Generate multiple parent objs.
                                                np.random.randint(2 if gtype == "pick_two_obj_and_place" else 1,
@@ -661,10 +660,13 @@ def main(args, thread_num=0):
 
 def create_dirs(gtype, pickup_obj, movable_obj, receptacle_obj, scene_num):
     task_id = 'trial_T' + datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    save_name = '%s-%s-%s-%s-%d' % (gtype, pickup_obj, movable_obj, receptacle_obj, scene_num) + '/' + task_id
+    task_name = '%s-%s-%s-%s-%d' % (gtype, pickup_obj, movable_obj, receptacle_obj, scene_num)
 
-    constants.save_path = os.path.join(constants.DATA_SAVE_PATH, save_name, RAW_IMAGES_FOLDER)
-    constants.save_depth_path = os.path.join(constants.DATA_SAVE_PATH, save_name, DEPTH_IMAGES_FOLDER)
+    task_path = os.path.join(constants.DATA_SAVE_PATH, task_name)
+    constants.save_path = os.path.join(task_path, task_id, RAW_IMAGES_FOLDER)
+    constants.save_depth_path = os.path.join(task_path, task_id, DEPTH_IMAGES_FOLDER)
+
+    assert not os.path.exists(task_path), "Attempting to generate trials for a task that has already been generated. Skipping."
 
     if not os.path.exists(constants.save_path):
         os.makedirs(constants.save_path)
