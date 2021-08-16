@@ -84,6 +84,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
         return obs
 
     def step(self, a):
+        print(f"Taking action {a}")
         action = DISCRETE_ACTION_SPACE[a]
 
         # # from alfred.utils.eval_util.agent_step, obstruction_detection()
@@ -169,13 +170,13 @@ class AlfredDemoBasedThorEnv(gym.Env):
             self.which_dataset,
             self.demo_name,
         )
-        print(self.demo_dir)
 
         json_file = os.path.join(self.demo_dir, JSON_FILENAME)
         with open(json_file, 'r') as f:
             self.traj_data = json.load(f)
 
     def reset(self):
+        print("Resetting thor env")
         self.demo_counter += 1
         if self.demo_counter >= len(self.demo_names):  # loop around
             self.demo_counter = 0
@@ -199,6 +200,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
         raise NotImplementedError
 
     def close(self):
+        print("Closing thor env")
         self.env.stop()
 
     def seed(self, seed=None):
