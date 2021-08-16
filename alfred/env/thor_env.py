@@ -39,6 +39,9 @@ class ThorEnv(Controller):
 
         # print("ThorEnv started.")
 
+    def __del__(self):
+        self.stop()
+
     def reset(self, scene_name_or_num,
               grid_size=constants.AGENT_STEP_SIZE / constants.RECORD_SMOOTHING_FACTOR,
               render_image=constants.RENDER_IMAGE,

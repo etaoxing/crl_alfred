@@ -483,6 +483,7 @@ def main(args, thread_num=0):
         if sampled_task is None:
             sys.exit("No valid tuples left to sample (all are known to fail or already have %d trajectories" %
                      args.repeats_per_cond)
+
         gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene = sampled_task
         sampled_scene = int(sampled_scene)
         print("sampled tuple: " + str((gtype, pickup_obj, movable_obj, receptacle_obj, sampled_scene)))
