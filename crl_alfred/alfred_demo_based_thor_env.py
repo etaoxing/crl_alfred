@@ -201,7 +201,11 @@ class AlfredDemoBasedThorEnv(gym.Env):
 
     def close(self):
         print("Closing thor env")
-        self.env.stop()
+        try:
+            self.env.stop()
+        except AttributeError as e:
+            # If the env wasn't created before closure, this fails.
+            print(f"Env closure failed with {e}. Ignoring.")
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
