@@ -198,6 +198,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
         )
 
         self.num_fails = 0
+        self.current_step = 0
 
         self.prev_subgoal_idx = -1  # initialize as task.finished
         self.update_subgoal()
