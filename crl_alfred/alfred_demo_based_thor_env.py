@@ -42,7 +42,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
     https://ai2thor.allenai.org/ithor/documentation/environment-state/#agent-simulator-loop
     """
     def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, raw_image_ext='.png'):
-        assert which_dataset in set(['train', 'val_seen', 'val_unseen', 'test_seen', 'test_unseen'])
+        assert which_dataset in set(['train', 'valid_seen', 'valid_unseen', 'test_seen', 'test_unseen'])
         assert isinstance(demo_names, list)
 
         self.which_dataset = which_dataset
