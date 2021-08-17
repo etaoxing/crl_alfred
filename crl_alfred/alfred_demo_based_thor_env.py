@@ -41,7 +41,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
     References:
     https://ai2thor.allenai.org/ithor/documentation/environment-state/#agent-simulator-loop
     """
-    def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, raw_image_ext='.png'):
+    def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, max_steps=1000, raw_image_ext='.png'):
         assert which_dataset in set(['train', 'valid_seen', 'valid_unseen', 'test_seen', 'test_unseen'])
         assert isinstance(demo_names, list)
 
@@ -51,6 +51,8 @@ class AlfredDemoBasedThorEnv(gym.Env):
         self.raw_image_ext = raw_image_ext
 
         self.max_fails = max_fails  # see alfred.config.cfg_eval
+        self.max_steps = max_steps
+        self.current_step = 0
 
         self.env = ThorEnv(quality="High")
 
@@ -133,6 +135,11 @@ class AlfredDemoBasedThorEnv(gym.Env):
         if self.prev_subgoal_idx != curr_subgoal_idx:
             self.prev_subgoal_idx = curr_subgoal_idx
             self.update_subgoal()
+
+        if self.current_step > self.max_steps:
+            print("Ending task early, due to exceeding max steps.")
+            done = True
+        self.current_step += 1
 
         # call this last since may need to update goal frame
         obs = self.get_obs_dict()
