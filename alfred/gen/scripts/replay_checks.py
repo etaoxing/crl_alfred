@@ -29,7 +29,7 @@ def parallel_replay_check(args):
             proc.join()
 
 def replay_check(args, thread_num=0):
-    env = ThorEnv(x_display=constants.X_DISPLAY)
+    env = ThorEnv()
 
     # replay certificate filenames
     replay_certificate_filenames = ["replay.certificate.%d" % idx for idx in range(args.num_replays)]
