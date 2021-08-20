@@ -100,7 +100,7 @@ def replay_check(args, thread_num=0):
                     print("check %d/%d for file '%s'" % (cidx + 1, args.num_replays, json_file))
                     try:
                         traj_data = json.load(f)
-                        env.set_task(traj_data, args, reward_type='dense')
+                        env.set_task(traj_data, reward_type='dense')
                     except json.decoder.JSONDecodeError:
                         failed = True
                         json_fails += 1
