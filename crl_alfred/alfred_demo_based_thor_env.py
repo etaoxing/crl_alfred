@@ -41,7 +41,8 @@ class AlfredDemoBasedThorEnv(gym.Env):
     References:
     https://ai2thor.allenai.org/ithor/documentation/environment-state/#agent-simulator-loop
     """
-    def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, max_steps=1000, raw_image_ext='.png'):
+    def __init__(self, which_dataset, demo_names, x_display='0', max_fails=10, max_steps=1000, raw_image_ext='.png',
+                 height=300, width=300):
         assert which_dataset in set(['train', 'valid_seen', 'valid_unseen', 'test_seen', 'test_unseen'])
         assert isinstance(demo_names, list)
 
@@ -49,12 +50,14 @@ class AlfredDemoBasedThorEnv(gym.Env):
         self.demo_counter = -1
         self.demo_names = demo_names
         self.raw_image_ext = raw_image_ext
+        self.height = height
+        self.width = width
 
         self.max_fails = max_fails  # see alfred.config.cfg_eval
         self.max_steps = max_steps
         self.current_step = 0
 
-        self.env = ThorEnv(quality="High")
+        self._env = None
 
         self.seed()
 
@@ -67,7 +70,7 @@ class AlfredDemoBasedThorEnv(gym.Env):
         d = dict(
             frame=gym.spaces.Box(
                 low=0, high=255,
-                shape=(self.env.height, self.env.width, 3),
+                shape=(self.height, self.width, 3),
                 dtype=np.uint8,
             )
         )
@@ -77,6 +80,15 @@ class AlfredDemoBasedThorEnv(gym.Env):
     @property
     def action_space(self):
         return gym.spaces.Discrete(len(DISCRETE_ACTION_SPACE))
+
+    @property
+    def env(self):
+        # Lazy load so initialization is light-weight
+        if self._env is None:
+            self._env = ThorEnv(quality="High",
+                                player_screen_height=self.height,
+                                player_screen_width=self.width)
+        return self._env
 
     def get_obs_dict(self):
         obs = dict(
@@ -208,9 +220,10 @@ class AlfredDemoBasedThorEnv(gym.Env):
         raise NotImplementedError
 
     def close(self):
-        print("Closing thor env")
         try:
-            self.env.stop()
+            if self._env is not None:
+                print("Closing thor env")
+                self._env.stop()
         except AttributeError as e:
             # If the env wasn't created before closure, this fails.
             print(f"Env closure failed with {e}. Ignoring.")
