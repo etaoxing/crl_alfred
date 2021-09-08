@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='alfred',
+    name='crl_alfred',
     version='0.1',
-    packages=['alfred', 'crl_alfred'],
+    packages=['crl_alfred', 'alfred'],
 )
