@@ -248,6 +248,7 @@ class CoolObjectAction(BaseAction):
             reward, done = self.rewards['invalid_action'], False
             return reward, done
 
+        subgoal = expert_plan[goal_idx]['planner_action']
         reward, done = self.rewards['neutral'], False
         next_put_goal_idx = goal_idx+2 # (+1) GotoLocation -> (+2) PutObject (get the objectId from the PutObject action)
         if next_put_goal_idx < len(expert_plan):
@@ -263,7 +264,7 @@ class CoolObjectAction(BaseAction):
 
             # intermediate reward for opening fridge after object is cooled
             elif is_obj_cool and state.metadata['lastAction']=='OpenObject':
-                target_recep = get_object(subgoal['objectId'], state.metadata)
+                target_recep = game_util.get_object(subgoal['objectId'], state.metadata)
                 if target_recep is not None and not self.env.reopen_reward:
                     if target_recep['isOpen']:
                         self.env.reopen_reward = True

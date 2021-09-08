@@ -118,7 +118,7 @@ class Eval(object):
         print("Task: %s" % (traj_data['turk_annotations']['anns'][r_idx]['task_desc']))
 
         # setup task for reward
-        env.set_task(traj_data, args, reward_type=reward_type)
+        env.set_task(traj_data, reward_type=reward_type)
 
     @classmethod
     def run(cls, model, resnet, task_queue, args, lock, successes, failures):
