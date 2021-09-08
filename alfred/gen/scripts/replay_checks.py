@@ -29,7 +29,7 @@ def parallel_replay_check(args):
             proc.join()
 
 def replay_check(args, thread_num=0):
-    env = ThorEnv(x_display=constants.X_DISPLAY)
+    env = ThorEnv()
 
     # replay certificate filenames
     replay_certificate_filenames = ["replay.certificate.%d" % idx for idx in range(args.num_replays)]
@@ -100,7 +100,7 @@ def replay_check(args, thread_num=0):
                     print("check %d/%d for file '%s'" % (cidx + 1, args.num_replays, json_file))
                     try:
                         traj_data = json.load(f)
-                        env.set_task(traj_data, args, reward_type='dense')
+                        env.set_task(traj_data, reward_type='dense')
                     except json.decoder.JSONDecodeError:
                         failed = True
                         json_fails += 1

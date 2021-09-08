@@ -1,4 +1,6 @@
 import json
+from alfred.utils.data_util import decompress_mask_alfred as decompress_mask
+
 
 def replay_json(env, json_file):
     # load json data
@@ -39,7 +41,7 @@ def replay_json(env, json_file):
         # 3. use full pixel-wise segmentation mask
         compressed_mask = action_args['mask'] if 'mask' in action_args else None
         if compressed_mask is not None:
-            mask = env.decompress_mask(compressed_mask)
+            mask = decompress_mask(compressed_mask)
         else:
             mask = None
 
